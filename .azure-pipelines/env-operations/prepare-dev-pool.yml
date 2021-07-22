@@ -1,0 +1,33 @@
+# Prepare a pool of dev scratch orgs
+
+name: 'Replenish DEV Pools - Auto Triggered'
+trigger: none
+pr: none
+
+schedules:
+    - cron: '0 0 * * *'
+      displayName: Daily midnight prepare pool
+      branches:
+          include:
+              - main
+      always: true
+
+pool:
+    vmImage: 'ubuntu-latest'
+
+container: dxatscale/sfpowerscripts:latest
+
+steps:
+    
+    - script: |
+          echo 'y' | sfdx plugins:install @dxatscale/sfpowersripts@alpha
+      displayName: 'Switch sfpowerscripts to alpha'
+
+    - script: |
+          echo $(DEVHUB_SFDX_AUTH_URL) > ./authfile
+          sfdx auth:sfdxurl:store -f authfile -a devhub
+      displayName: 'Authenticate DevHub'
+
+    - script: |
+          sfdx sfpowerscripts:orchestrator:prepare -f config/devpool.json -v devhub
+      displayName: 'Prepare a pool of scratch orgs'

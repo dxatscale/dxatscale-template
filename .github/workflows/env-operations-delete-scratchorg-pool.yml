@@ -1,0 +1,33 @@
+# Return an used scratch org back to the pool for replenishment
+
+name: 'Scratch Org Recycler - User Triggered'
+
+on:
+  workflow_dispatch:
+    inputs:
+      username:
+        description: "Username of the scratch org"
+        required: true
+
+jobs:
+
+  delet-scracthorg:
+    name: 'Return a used scratch org to the pool ${{ github.event.inputs.username }}'
+    runs-on: ubuntu-latest
+    container: dxatscale/sfpowerscripts
+    steps:
+
+      - uses: actions/checkout@v2
+        with:
+          ref: main
+
+      - run: |
+          echo 'y' | sfdx plugins:install @dxatscale/sfpowerscripts@alpha
+
+      - name: 'Authenticate Dev Hub'
+        run: |
+          echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./authfile
+          sfdx auth:sfdxurl:store -f authfile -a devhub
+
+      - name: 'Delete scratch org ${{ github.event.inputs.username }}'
+        run: 'sfdx sfpowerscripts:pool:org:delete -u ${{ github.event.inputs.username }} -v devhub'

@@ -1,0 +1,115 @@
+# This pipeline is used to release a set of packages into respective environments
+
+name: 'CD Pipeline - User Triggered'
+
+
+on:
+  workflow_dispatch:
+    inputs:
+      pathToReleaseDef:
+        description: "Path to release definition file"
+        required: true
+
+jobs:
+  ST:
+    runs-on: ubuntu-latest
+    container: dxatscale/sfpowerscripts
+    environment:
+      name: ST
+    env:
+      NPM_SCOPE: 'scope' #Change scope 
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - run: |
+          echo 'y' | sfdx plugins:install sfpowerkit@alpha
+
+      - name: Authenticate to ST sandbox
+        run: |
+          echo "${{ secrets.ST_SFDX_AUTH_URL }}" > ./st_authfile
+          sfdx auth:sfdxurl:store -f ./st_authfile -a st
+
+      - name: Authenticate to NPM registry
+        run: |
+           echo "@${env.NPM_SCOPE}:registry=https://npm.pkg.github.com" > ~/.npmrc
+           echo  "_authToken=${AUTH_TOKEN}" >> ~/.npmrc
+        env:
+          AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SCOPE: ${{ env.NPM_SCOPE }}
+
+      # Release to environment
+      - name: 'Release to ST'
+        run: 'sfdx sfpowerscripts:orchestrator:release -u st -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ scope }} --generatechangelog'
+
+
+  SIT:
+    runs-on: ubuntu-latest
+    container: dxatscale/sfpowerscripts
+    environment:
+      name: SIT
+    needs: ST  
+    env:
+      NPM_SCOPE: 'scope' #change scope 
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - run: |
+          echo 'y' | sfdx plugins:install sfpowerkit@alpha
+
+      - name: Authenticate to SIT sandbox
+        run: |
+          echo "${{ secrets.SIT_SFDX_AUTH_URL }}" > ./sit_authfile
+          sfdx auth:sfdxurl:store -f ./sit_authfile -a sit
+
+      - name: Authenticate to NPM registry
+        run: |
+           echo "@${env.NPM_SCOPE}:registry=https://npm.pkg.github.com" > ~/.npmrc
+           echo  "_authToken=${AUTH_TOKEN}" >> ~/.npmrc
+        env:
+          AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SCOPE: ${{ env.NPM_SCOPE }}
+
+      # Release to environment
+      - name: 'Release to SIT'
+        run: 'sfdx sfpowerscripts:orchestrator:release -u sit -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ scope }} --generatechangelog'
+
+
+  PROD:
+    runs-on: ubuntu-latest
+    container: dxatscale/sfpowerscripts
+    environment:
+      name: PROD
+    needs: SIT  
+    if: ${{ github.ref == 'refs/heads/release/**' }}
+    env:
+      NPM_SCOPE: 'scope' #Change scope 
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - run: |
+          echo 'y' | sfdx plugins:install sfpowerkit@alpha
+
+      - name: Authenticate to PROD
+        run: |
+          echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./authfile
+          sfdx auth:sfdxurl:store -f ./st_authfile -a prod
+
+      - name: Authenticate to NPM registry
+        run: |
+           echo "@${env.NPM_SCOPE}:registry=https://npm.pkg.github.com" > ~/.npmrc
+           echo  "_authToken=${AUTH_TOKEN}" >> ~/.npmrc
+        env:
+          AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SCOPE: ${{ env.NPM_SCOPE }}
+
+      # Release to environment
+      - name: 'Release to PROD'
+        run: 'sfdx sfpowerscripts:orchestrator:release -u prod -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ scope }} --generatechangelog'
+
+

@@ -1,0 +1,55 @@
+# Clean existing pools of scratch orgs
+
+name: 'Scratch Org Pool Cleaner - Auto Scheduled'
+trigger: none
+pr: none
+
+schedules:
+    - cron: '0 23 * * *'
+      displayName: Scratch Org Pool Cleaner Scheduled Trigger
+      branches:
+          include:
+              - main
+      always: true
+
+pool:
+    vmImage: 'ubuntu-latest'
+
+# Drop only unused scratch orgs in the pool for recycling, else users will loose their existing scratch orgs
+jobs:
+  - job: 
+    container: dxatscale/sfpowerscripts:latest
+    displayName: "Delete Dev Pool"
+    steps:
+    - script: |
+          echo 'y' | sfdx plugins:install @dxatscale/sfpowersripts@alpha
+      displayName: 'Switch sfpowerscripts to alpha'
+
+    - script: |
+          echo $(DEVHUB_SFDX_AUTH_URL) > ./authfile
+          sfdx auth:sfdxurl:store -f authfile -a devhub
+      displayName: 'Authenticate DevHub'
+
+    - script: |
+          sfdx sfpowerscripts:pool:delete -t dev -v devhub
+      displayName: 'Delete Dev Pool'
+
+
+# Drop all scratch orgs in  the case of CI pool, its better to recreate every time
+  - job: 
+    container: dxatscale/sfpowerscripts:latest
+    displayName: "Delete CI Pool"
+    dependsOn: []
+    steps:
+    - script: |
+          echo 'y' | sfdx plugins:install @dxatscale/sfpowersripts@alpha
+      displayName: 'Switch sfpowerscripts to alpha'
+
+    - script: |
+          echo $(DEVHUB_SFDX_AUTH_URL) > ./authfile
+          sfdx auth:sfdxurl:store -f authfile -a devhub
+      displayName: 'Authenticate DevHub'
+
+    - script: |
+          sfdx sfpowerscripts:pool:delete -t ci -v devhub -a
+      displayName: 'Delete CI Pool'

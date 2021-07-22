@@ -1,0 +1,112 @@
+name: 'CD Pipeline - User Triggered'
+
+trigger: none
+pr: none
+
+parameters:
+  - name: releasedefintionPath
+    displayName: 'Path to release definition file'
+    type: string
+    default: 'releaseDefinitions/release-1.0.yml'
+
+stages:
+    - stage: release
+      displayName: release
+      jobs:
+          - deployment: release_st
+            environment: st
+            displayName: 'release to st'
+            pool:
+                vmImage: 'ubuntu-latest'
+            container: dxatscale/sfpowerscripts:latest
+            strategy:
+             runOnce:
+               deploy:
+                steps:
+                 - checkout: self
+                   persistCredentials: true
+
+                 - task: DownloadSecureFile@1
+                   name: npmrc
+                   inputs:
+                      secureFile: ~/.npmrc
+
+                 - task: npmAuthenticate@0
+                   inputs:
+                      workingFile: $(npmrc.secureFilePath)
+
+                 - script: |
+                        echo $(ST_SFDX_AUTH_URL) > ./authfile
+                        sfdx auth:sfdxurl:store -f authfile -a st
+                   displayName: 'Authenticate to ST'
+
+                 - task: CmdLine@2
+                   displayName: 'Deploy packages to st'
+                   inputs:
+                      script: 'sfdx sfpowerscripts:orchestrator:release -u st -p ${{ parameters.releasedefintionPath }} --npm --scope  ${ scope } --npmrcpath $(npmrc.secureFilePath) --generatechangelog'
+
+
+          - deployment: release_sit
+            environment: sit
+            displayName: 'release to sit'
+            pool:
+                vmImage: 'ubuntu-latest'
+            container: dxatscale/sfpowerscripts:latest
+            strategy:
+             runOnce:
+               deploy:
+                steps:
+                 - checkout: self
+                   persistCredentials: true
+
+                 - task: DownloadSecureFile@1
+                   name: npmrc
+                   inputs:
+                      secureFile: ~/.npmrc
+
+                 - task: npmAuthenticate@0
+                   inputs:
+                      workingFile: $(npmrc.secureFilePath)
+
+                 - script: |
+                        echo $(SIT_SFDX_AUTH_URL) > ./authfile
+                        sfdx auth:sfdxurl:store -f authfile -a sit
+                   displayName: 'Authenticate to SIT'
+
+                 - task: CmdLine@2
+                   displayName: 'Deploy packages to SIT'
+                   inputs:
+                      script: 'sfdx sfpowerscripts:orchestrator:release -u sit -p ${{ parameters.releasedefintionPath }} --npm --scope  ${ scope } --npmrcpath $(npmrc.secureFilePath) --generatechangelog'
+
+         - deployment: release_prod
+            environment: prod
+            displayName: 'release to prod'
+            condition: eq(variables['Build.SourceBranch'], 'refs/heads/release/')
+            pool:
+                vmImage: 'ubuntu-latest'
+            container: dxatscale/sfpowerscripts:latest
+            strategy:
+             runOnce:
+               deploy:
+                steps:
+                 - checkout: self
+                   persistCredentials: true
+
+                 - task: DownloadSecureFile@1
+                   name: npmrc
+                   inputs:
+                      secureFile: ~/.npmrc
+
+                 - task: npmAuthenticate@0
+                   inputs:
+                      workingFile: $(npmrc.secureFilePath)
+
+                 - script: |
+                        echo $(DEVHUB_SFDX_AUTH_URL) > ./authfile
+                        sfdx auth:sfdxurl:store -f authfile -a prod
+                   displayName: 'Authenticate to SIT'
+
+                 - task: CmdLine@2
+                   displayName: 'Deploy packages to SIT'
+                   inputs:
+                      script: 'sfdx sfpowerscripts:orchestrator:release -u prod -p ${{ parameters.releasedefintionPath }} --npm --scope ${ scope } --npmrcpath $(npmrc.secureFilePath) --generatechangelog'

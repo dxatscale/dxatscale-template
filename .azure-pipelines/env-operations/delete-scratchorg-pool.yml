@@ -1,0 +1,34 @@
+# Clean existing pools of scratch orgs
+
+name: 'Scratch Org Recycler - User Triggered'
+trigger: none
+pr: none
+
+
+parameters:
+  - name: username
+    displayName: 'Username of the scratch org'
+    type: string
+
+
+pool:
+    vmImage: 'ubuntu-latest'
+
+# Drop only unused scratch orgs in the pool for recycling, else users will loose their existing scratch orgs
+jobs:
+  - job: 
+    container: dxatscale/sfpowerscripts:latest
+    displayName: "Return a used scratch org to the pool ${{ parameters.username }}"
+    steps:
+    - script: |
+          echo 'y' | sfdx plugins:install @dxatscale/sfpowersripts@alpha
+      displayName: 'Switch sfpowerscripts to alpha'
+
+    - script: |
+          echo $(DEVHUB_SFDX_AUTH_URL) > ./authfile
+          sfdx auth:sfdxurl:store -f authfile -a devhub
+      displayName: 'Authenticate DevHub'
+
+    - script: |
+          sfdx sfpowerscripts:pool:org:delete -u ${{ parameters.username }} -v devhub
+      displayName: 'Delete scratch org ${{ parameters.username }}'

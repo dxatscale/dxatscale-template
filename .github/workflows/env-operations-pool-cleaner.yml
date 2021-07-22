@@ -1,0 +1,50 @@
+# This pipeline deletes all the scratch orgs from the pool on a set time, so that pools can be recreated with new artifacts
+
+name: 'Scratch Org Pool Cleaner - Auto Scheduled'
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 13 * * *'
+
+jobs:
+
+  clean-pool-dev:
+    name: 'Clean Dev Pool'
+    runs-on: ubuntu-latest
+    container: dxatscale/sfpowerscripts
+    steps:
+
+      - uses: actions/checkout@v2
+
+      - run: |
+          echo 'y' | sfdx plugins:install @dxatscale/sfpowerscripts@alpha
+
+      - name: 'Authenticate Dev Hub'
+        run: |
+          echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./authfile
+          sfdx auth:sfdxurl:store -f authfile -a devhub
+
+
+      - name: 'Drop the pool'
+        run: 'sfdx sfpowerscripts:pool:delete -t dev -v devhub'
+
+  clean-pool-ci:
+    name: 'Clean CI Pool'
+    runs-on: ubuntu-latest
+    container: dxatscale/sfpowerscripts
+    steps:
+
+      - uses: actions/checkout@v2
+
+      - run: |
+          echo 'y' | sfdx plugins:install @dxatscale/sfpowerscripts@alpha
+
+      - name: 'Authenticate Dev Hub'
+        run: |
+          echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./authfile
+          sfdx auth:sfdxurl:store -f authfile -a devhub
+
+
+      - name: 'Drop the pool'
+        run: 'sfdx sfpowerscripts:pool:delete -t ci -v devhub -a'

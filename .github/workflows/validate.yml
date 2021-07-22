@@ -1,0 +1,65 @@
+# This pipeline is used to validate an incoming change using a dev environment fetched from the CI pool
+
+name: 'PR Validation - Auto Triggered'
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+      - release/**
+
+
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: 'Validate Changed Packages'
+    runs-on: ubuntu-latest
+    container: dxatscale/sfpowerscripts
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - run: |
+          echo 'y' | sfdx plugins:install @dxatscale/sfpowerscripts@alpha
+
+      - name: 'Authenticate Dev Hub'
+        run: |
+          echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./authfile
+          sfdx auth:sfdxurl:store -f authfile -a devhub
+
+
+
+      # Validate source and trigger test
+      - name: 'Push source to scratch org'
+        run: 'sfdx sfpowerscripts:orchestrator:validate -p ci -v devhub '
+
+  static:
+    name: 'static-analysis-of-Apex-classes-using-PMD'
+    runs-on: ubuntu-latest
+    container: dxatscale/sfpowerscripts
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: "Run PMD static code analysis"
+        shell: bash
+        run: |
+          sfdx sfpowerscripts:analyze:pmd -b --sourcedir=src/core-crm -o core-crm-pmd-output
+
+  validate-package-coverage:
+    name: 'validate metadata coverage for unlocked packages'
+    runs-on: ubuntu-latest
+    container: dxatscale/sfpowerscripts
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: "validate metadata coverage"
+        shell: bash
+        run: |
+          sfdx sfpowerkit:package:valid -n core-crm -b StandardValueSet

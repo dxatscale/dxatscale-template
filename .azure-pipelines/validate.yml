@@ -1,0 +1,31 @@
+# Validate changes introduced through PR
+
+name: 'PR Validation - Auto Triggered'
+trigger: none
+
+pr:
+    autoCancel: false
+    drafts: false
+    branches:
+        include:
+            - develop
+pool:
+    vmImage: 'ubuntu-latest'
+
+container: dxatscale/sfpowerscripts:latest
+
+
+
+steps:
+
+    - checkout: self
+      persistCredentials: true
+
+    - script: |
+          echo $(DEVHUB_SFDX_AUTH_URL) > ./authfile
+          sfdx auth:sfdxurl:store -f authfile -a devhub
+      displayName: 'Authenticate DevHub'
+
+    - script: |
+          sfdx sfpowerscripts:orchestrator:validate -v devhub  -p ci
+      displayName: 'Validate Changes'

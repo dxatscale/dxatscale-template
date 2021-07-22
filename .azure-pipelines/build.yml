@@ -1,0 +1,121 @@
+name: 'CI Pipeline - Auto Triggered'
+
+trigger:
+    - main
+    - release/**
+  
+pr: none
+
+stages:
+    - stage: QuickBuild
+      displayName: QuickBuild
+      dependsOn: []
+      jobs:
+          - job: QuickBuildJob
+            displayName: 'Quick Build the packages'
+           
+            pool:
+                vmImage: 'ubuntu-latest'
+            container: dxatscale/sfpowerscripts:latest
+            steps:
+                - checkout: self
+
+                - script: |
+                        echo $(DEVHUB_SFDX_AUTH_URL) > ./authfile
+                        sfdx auth:sfdxurl:store -f authfile -a devhub
+                  displayName: 'Authenticate DevHub'
+
+                - task: CmdLine@2
+                  displayName: 'Build All Packages'
+                  inputs:
+                      script: 'sfdx sfpowerscripts:orchestrator:quickbuild -v devhub --branch main --diffcheck'
+
+                - task: PublishBuildArtifacts@1
+                  inputs:
+                      PathtoPublish: 'artifacts'
+                      ArtifactName: 'quickbuild-artifacts'
+                      publishLocation: 'Container'
+
+#Utilizes a deployment job to make use of environments feature for exclusive lock
+    - stage: Deploy
+      displayName: 'Deploy and Validate the packages'
+      dependsOn: QuickBuild
+      jobs:
+          - deployment: deploy
+            environment: 'deploy'
+            displayName: 'Deploy the packages'
+  
+            pool:
+                vmImage: 'ubuntu-latest'
+            container: dxatscale/sfpowerscripts:latest
+            strategy:
+             runOnce:
+              deploy:
+               steps:
+                - checkout: self
+
+                - task: DownloadBuildArtifacts@0
+                  inputs:
+                      artifactName: 'quickbuild-artifacts'
+                      downloadPath: artifacts
+
+          
+                - script: |
+                        echo $(DEV_SFDX_AUTH_URL) > ./authfile
+                        sfdx auth:sfdxurl:store -f authfile -a dev
+                  displayName: 'Authenticate to dev'
+
+
+                - task: CmdLine@2
+                  displayName: 'Deploy packages to dev'
+                  inputs:
+                      script: 'sfdx sfpowerscripts:orchestrator:deploy -u dev'
+
+
+#Utilizes a deployment job to make use of environments feature for exclusive lock
+    - stage: Build
+      displayName: 'Build Production Ready Packages and Publish'
+      dependsOn: Deploy
+      jobs:
+          - deployment : BuildJob
+            environment: build
+            displayName: 'Build the packages'
+
+            pool:
+                vmImage: 'ubuntu-latest'
+            container: dxatscale/sfpowerscripts:latest
+            strategy:
+             runOnce:
+              deploy:
+               steps:
+                - checkout: self
+                  persistCredentials: true
+
+                - script: |
+                        echo $(DEVHUB_SFDX_AUTH_URL) > ./authfile
+                        sfdx auth:sfdxurl:store -f authfile -a devhub
+                  displayName: 'Authenticate DevHub'
+
+                - task: npmAuthenticate@0
+                  inputs:
+                   workingFile: $(npmrc.secureFilePath)
+
+                - task: CmdLine@2
+                  displayName: 'Build All Packages'
+                  inputs:
+                      script: 'sfdx sfpowerscripts:orchestrator:build -v devhub --branch main --diffcheck'
+
+                - script: |
+                   sfdx sfpowerscripts:orchestrator:publish --npm --scope  ${ scope } --npmrcpath $(npmrc.secureFilePath) --gittag --pushgittag
+                  displayName: 'Publish artifacts to NPM registry'
+
+
+                - task: PublishBuildArtifacts@1
+                  inputs:
+                      PathtoPublish: 'artifacts'
+                      ArtifactName: 'validated-artifacts'
+                      publishLocation: 'Container'
+
+
+
+ 
