@@ -18,98 +18,109 @@ jobs:
       name: ST
     env:
       NPM_SCOPE: 'scope' #Change scope 
+      #SET ONE OF THESE FOR METRICS
+      #SFPOWERSCRIPTS_NEWRELIC: 'true'
+      #SFPOWERSCRIPTS_NEWRELIC_API_KEY: '${{ secrets.NEWRELIC_INGEST_KEY }}'
+      #SFPOWERSCRIPTS_DATADOG: 'true'
+      #SFPOWERSCRIPTS_DATADOG_HOST: '${{ secrets.DATADOG_HOST }}'
+      #SFPOWERSCRIPTS_DATADOG_API_KEY: '${{ secrets.DATADOG_API_KEY }}'
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-
-      - run: |
-          echo 'y' | sfdx plugins:install sfpowerkit@alpha
-
+   
       - name: Authenticate to ST sandbox
         run: |
-          echo "${{ secrets.ST_SFDX_AUTH_URL }}" > ./st_authfile
-          sfdx auth:sfdxurl:store -f ./st_authfile -a st
+          echo "${{ secrets.ST_SFDX_AUTH_URL }}" > ./authfile
+          sfdx auth:sfdxurl:store -f ./authfile -a st
 
       - name: Authenticate to NPM registry
         run: |
-           echo "@${env.NPM_SCOPE}:registry=https://npm.pkg.github.com" > ~/.npmrc
+           echo "${{ env.NPM_SCOPE }}:registry=https://npm.pkg.github.com" > ~/.npmrc
            echo  "_authToken=${AUTH_TOKEN}" >> ~/.npmrc
         env:
           AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SCOPE: ${{ env.NPM_SCOPE }}
 
       # Release to environment
       - name: 'Release to ST'
-        run: 'sfdx sfpowerscripts:orchestrator:release -u st -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ scope }} --generatechangelog'
+        run: 'sfdx sfpowerscripts:orchestrator:release -u st -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ env.NPM_SCOPE }} --generatechangelog -b ${GITHUB_REF#refs/heads/}'
 
 
-  SIT:
+  Staging:
     runs-on: ubuntu-latest
     container: dxatscale/sfpowerscripts
+      if: github.ref == 'refs/heads/main' || 'refs/heads/release/*'
     environment:
-      name: SIT
+      name: STAGING
     needs: ST  
     env:
-      NPM_SCOPE: 'scope' #change scope 
+      NPM_SCOPE: 'scope' #Change scope 
+      #SET ONE OF THESE FOR METRICS
+      #SFPOWERSCRIPTS_NEWRELIC: 'true'
+      #SFPOWERSCRIPTS_NEWRELIC_API_KEY: '${{ secrets.NEWRELIC_INGEST_KEY }}'
+      #SFPOWERSCRIPTS_DATADOG: 'true'
+      #SFPOWERSCRIPTS_DATADOG_HOST: '${{ secrets.DATADOG_HOST }}'
+      #SFPOWERSCRIPTS_DATADOG_API_KEY: '${{ secrets.DATADOG_API_KEY }}'
+
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
 
-      - run: |
-          echo 'y' | sfdx plugins:install sfpowerkit@alpha
-
-      - name: Authenticate to SIT sandbox
+   
+      - name: Authenticate to STAGING sandbox
         run: |
-          echo "${{ secrets.SIT_SFDX_AUTH_URL }}" > ./sit_authfile
-          sfdx auth:sfdxurl:store -f ./sit_authfile -a sit
+          echo "${{ secrets.STAGING_SFDX_AUTH_URL }}" > ./authfile
+          sfdx auth:sfdxurl:store -f ./authfile -a staging
 
       - name: Authenticate to NPM registry
         run: |
-           echo "@${env.NPM_SCOPE}:registry=https://npm.pkg.github.com" > ~/.npmrc
+           echo "${{ env.NPM_SCOPE }}:registry=https://npm.pkg.github.com" > ~/.npmrc
            echo  "_authToken=${AUTH_TOKEN}" >> ~/.npmrc
         env:
           AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SCOPE: ${{ env.NPM_SCOPE }}
+
 
       # Release to environment
-      - name: 'Release to SIT'
-        run: 'sfdx sfpowerscripts:orchestrator:release -u sit -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ scope }} --generatechangelog'
-
+      - name: 'Release to STAGING'
+         run: 'sfdx sfpowerscripts:orchestrator:release -u staging -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ env.NPM_SCOPE }} --generatechangelog -b ${GITHUB_REF#refs/heads/}'
 
   PROD:
     runs-on: ubuntu-latest
     container: dxatscale/sfpowerscripts
+    if: contains(github.ref,'refs/heads/release')
     environment:
       name: PROD
     needs: SIT  
-    if: ${{ github.ref == 'refs/heads/release/**' }}
     env:
-      NPM_SCOPE: 'scope' #Change scope 
+       NPM_SCOPE: 'scope' #Change scope 
+      #SET ONE OF THESE FOR METRICS
+      #SFPOWERSCRIPTS_NEWRELIC: 'true'
+      #SFPOWERSCRIPTS_NEWRELIC_API_KEY: '${{ secrets.NEWRELIC_INGEST_KEY }}'
+      #SFPOWERSCRIPTS_DATADOG: 'true'
+      #SFPOWERSCRIPTS_DATADOG_HOST: '${{ secrets.DATADOG_HOST }}'
+      #SFPOWERSCRIPTS_DATADOG_API_KEY: '${{ secrets.DATADOG_API_KEY }}'
+
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
 
-      - run: |
-          echo 'y' | sfdx plugins:install sfpowerkit@alpha
 
       - name: Authenticate to PROD
         run: |
           echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./authfile
-          sfdx auth:sfdxurl:store -f ./st_authfile -a prod
+          sfdx auth:sfdxurl:store -f ./authfile -a prod
 
       - name: Authenticate to NPM registry
         run: |
-           echo "@${env.NPM_SCOPE}:registry=https://npm.pkg.github.com" > ~/.npmrc
+           echo "${{ env.NPM_SCOPE }}:registry=https://npm.pkg.github.com" > ~/.npmrc
            echo  "_authToken=${AUTH_TOKEN}" >> ~/.npmrc
         env:
           AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SCOPE: ${{ env.NPM_SCOPE }}
+
 
       # Release to environment
       - name: 'Release to PROD'
-        run: 'sfdx sfpowerscripts:orchestrator:release -u prod -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ scope }} --generatechangelog'
-
+    run: 'sfdx sfpowerscripts:orchestrator:release -u prod -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ env.NPM_SCOPE }} --generatechangelog -b ${GITHUB_REF#refs/heads/}'
 

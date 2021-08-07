@@ -14,18 +14,20 @@ jobs:
     name: 'Replenish CI Pool'
     runs-on: ubuntu-latest
     container: dxatscale/sfpowerscripts
-    if: ${{ github.ref == 'refs/heads/main' }}
+    timeout-minutes: 720 #Set to Maximum Time out
     env:
       NPM_SCOPE: 'scope' #Change scope here 
+      #SET ONE OF THESE FOR METRICS
+      #SFPOWERSCRIPTS_NEWRELIC: 'true'
+      #SFPOWERSCRIPTS_NEWRELIC_API_KEY: '${{ secrets.NEWRELIC_INGEST_KEY }}'
+      #SFPOWERSCRIPTS_DATADOG: 'true'
+      #SFPOWERSCRIPTS_DATADOG_HOST: '${{ secrets.DATADOG_HOST }}'
+      #SFPOWERSCRIPTS_DATADOG_API_KEY: '${{ secrets.DATADOG_API_KEY }}'
     steps:
 
       - uses: actions/checkout@v2
-        with:
-          ref: main
 
-      - run: |
-          echo 'y' | sfdx plugins:install @dxatscale/sfpowerscripts@alpha
-
+   
       - name: 'Authenticate Dev Hub'
         run: |
           echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./authfile
@@ -33,11 +35,11 @@ jobs:
 
       - name: Authenticate to NPM registry
         run: |
-           echo "@${env.NPM_SCOPE}:registry=https://npm.pkg.github.com" > ~/.npmrc
+           echo "${{ env.NPM_SCOPE }}:registry=https://npm.pkg.github.com" > ~/.npmrc
            echo  "_authToken=${AUTH_TOKEN}" >> ~/.npmrc
         env:
           AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SCOPE: ${{ env.NPM_SCOPE }}
+
 
       - name: 'Prepare a pool of scratch orgs'
         run: 'sfdx sfpowerscripts:orchestrator:prepare -f config/cipool.json -v devhub'

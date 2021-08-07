@@ -18,7 +18,13 @@ jobs:
     name: 'Quickbuild packages'
     runs-on: ubuntu-latest
     container: dxatscale/sfpowerscripts
-
+    env:
+      #SET ONE OF THESE FOR METRICS
+      #SFPOWERSCRIPTS_NEWRELIC: 'true'
+      #SFPOWERSCRIPTS_NEWRELIC_API_KEY: '${{ secrets.NEWRELIC_INGEST_KEY }}'
+      #SFPOWERSCRIPTS_DATADOG: 'true'
+      #SFPOWERSCRIPTS_DATADOG_HOST: '${{ secrets.DATADOG_HOST }}'
+      #SFPOWERSCRIPTS_DATADOG_API_KEY: '${{ secrets.DATADOG_API_KEY }}'
     steps:
       - uses: actions/checkout@v2
         with:
@@ -32,10 +38,7 @@ jobs:
       - name: 'Create packages'
         id: sfpowerscripts-build
         run: |
-          BRANCH=$GITHUB_REF
-          BRANCH=${BRANCH#"refs/heads/"}
-          echo $BRANCH
-          sfdx sfpowerscripts:orchestrator:quickbuild -v devhub --diffcheck --branch $BRANCH
+          sfdx sfpowerscripts:orchestrator:quickbuild -v devhub --diffcheck --branch ${GITHUB_REF#refs/heads/}
 
       # Publish artifacts
       - uses: actions/upload-artifact@v2
@@ -48,6 +51,13 @@ jobs:
     runs-on: ubuntu-latest
     container: dxatscale/sfpowerscripts
     needs: quickbuild
+    env:
+      #SET ONE OF THESE FOR METRICS
+      #SFPOWERSCRIPTS_NEWRELIC: 'true'
+      #SFPOWERSCRIPTS_NEWRELIC_API_KEY: '${{ secrets.NEWRELIC_INGEST_KEY }}'
+      #SFPOWERSCRIPTS_DATADOG: 'true'
+      #SFPOWERSCRIPTS_DATADOG_HOST: '${{ secrets.DATADOG_HOST }}'
+      #SFPOWERSCRIPTS_DATADOG_API_KEY: '${{ secrets.DATADOG_API_KEY }}'
     environment:
       name: DEV
     concurrency: dev
@@ -61,13 +71,20 @@ jobs:
              name: quickbuild-artifacts
              path: artifacts 
 
+       - name: 'Authenticate Dev Hub'
+        run: |
+          echo "${{ secrets.SFDX_AUTH_URL }}" > ./authfile
+          sfdx auth:sfdxurl:store -f authfile -a devhub
+
       - name: Authenticate to DEV sandbox
         run: |
           echo "${{ secrets.DEV_SFDX_AUTH_URL }}" > ./dev_authfile
           sfdx auth:sfdxurl:store -f ./dev_authfile -a dev
 
       - name: 'Deploy to DEV'
-        run: 'sfdx sfpowerscripts:orchestrator:deploy -u dev'
+        run: |
+        sfdx sfpowerkit:package:dependencies:install -u dev -v devhub -w 120 -r
+        sfdx sfpowerscripts:orchestrator:deploy -u dev
 
   buildAndPublish:
     name: 'Build and Publish'
@@ -77,6 +94,12 @@ jobs:
     concurrency: build
     env:
       NPM_SCOPE: '@scope'  #Replace scope with  GitHub org-name 
+      #SET ONE OF THESE FOR METRICS
+      #SFPOWERSCRIPTS_NEWRELIC: 'true'
+      #SFPOWERSCRIPTS_NEWRELIC_API_KEY: '${{ secrets.NEWRELIC_INGEST_KEY }}'
+      #SFPOWERSCRIPTS_DATADOG: 'true'
+      #SFPOWERSCRIPTS_DATADOG_HOST: '${{ secrets.DATADOG_HOST }}'
+      #SFPOWERSCRIPTS_DATADOG_API_KEY: '${{ secrets.DATADOG_API_KEY }}'
     steps:
       - uses: actions/checkout@v2
         with:
@@ -90,10 +113,7 @@ jobs:
       - name: 'Create packages'
         id: sfpowerscripts-build
         run: |
-          BRANCH=$GITHUB_REF
-          BRANCH=${BRANCH#"refs/heads/"}
-          echo $BRANCH
-          sfdx sfpowerscripts:orchestrator:build -v devhub --diffcheck --branch $BRANCH
+          sfdx sfpowerscripts:orchestrator:build -v devhub --diffcheck --branch ${GITHUB_REF#refs/heads/}
 
       # Publish artifacts
       - uses: actions/upload-artifact@v2
@@ -103,12 +123,11 @@ jobs:
 
       - name: Authenticate to NPM registry
         run: |
-           echo "${{ env.NPM_SCOPE }}:registry=https://npm.pkg.github.com" > ~/~/.npmrc
+           echo "${{ env.NPM_SCOPE }}:registry=https://npm.pkg.github.com" > ~/.npmrc
            echo  "_authToken=${AUTH_TOKEN}" >> ~/.npmrc
         env:
           AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
-
 
       - name: Publish
         run: |

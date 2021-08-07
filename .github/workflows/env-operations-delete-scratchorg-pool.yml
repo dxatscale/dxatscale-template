@@ -11,18 +11,19 @@ on:
 
 jobs:
 
-  delet-scracthorg:
+  delete-scracthorg:
     name: 'Return a used scratch org to the pool ${{ github.event.inputs.username }}'
     runs-on: ubuntu-latest
     container: dxatscale/sfpowerscripts
+    env:
+      #SET ONE OF THESE FOR METRICS
+      #SFPOWERSCRIPTS_NEWRELIC: 'true'
+      #SFPOWERSCRIPTS_NEWRELIC_API_KEY: '${{ secrets.NEWRELIC_INGEST_KEY }}'
+      #SFPOWERSCRIPTS_DATADOG: 'true'
+      #SFPOWERSCRIPTS_DATADOG_HOST: '${{ secrets.DATADOG_HOST }}'
+      #SFPOWERSCRIPTS_DATADOG_API_KEY: '${{ secrets.DATADOG_API_KEY }}'
     steps:
 
-      - uses: actions/checkout@v2
-        with:
-          ref: main
-
-      - run: |
-          echo 'y' | sfdx plugins:install @dxatscale/sfpowerscripts@alpha
 
       - name: 'Authenticate Dev Hub'
         run: |

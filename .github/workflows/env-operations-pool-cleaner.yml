@@ -13,12 +13,17 @@ jobs:
     name: 'Clean Dev Pool'
     runs-on: ubuntu-latest
     container: dxatscale/sfpowerscripts
+    env:
+      #SET ONE OF THESE FOR METRICS
+      #SFPOWERSCRIPTS_NEWRELIC: 'true'
+      #SFPOWERSCRIPTS_NEWRELIC_API_KEY: '${{ secrets.NEWRELIC_INGEST_KEY }}'
+      #SFPOWERSCRIPTS_DATADOG: 'true'
+      #SFPOWERSCRIPTS_DATADOG_HOST: '${{ secrets.DATADOG_HOST }}'
+      #SFPOWERSCRIPTS_DATADOG_API_KEY: '${{ secrets.DATADOG_API_KEY }}'
     steps:
 
       - uses: actions/checkout@v2
 
-      - run: |
-          echo 'y' | sfdx plugins:install @dxatscale/sfpowerscripts@alpha
 
       - name: 'Authenticate Dev Hub'
         run: |
@@ -33,13 +38,19 @@ jobs:
     name: 'Clean CI Pool'
     runs-on: ubuntu-latest
     container: dxatscale/sfpowerscripts
+     env:
+      #SET ONE OF THESE FOR METRICS
+      #SFPOWERSCRIPTS_NEWRELIC: 'true'
+      #SFPOWERSCRIPTS_NEWRELIC_API_KEY: '${{ secrets.NEWRELIC_INGEST_KEY }}'
+      #SFPOWERSCRIPTS_DATADOG: 'true'
+      #SFPOWERSCRIPTS_DATADOG_HOST: '${{ secrets.DATADOG_HOST }}'
+      #SFPOWERSCRIPTS_DATADOG_API_KEY: '${{ secrets.DATADOG_API_KEY }}'
+ 
     steps:
 
       - uses: actions/checkout@v2
 
-      - run: |
-          echo 'y' | sfdx plugins:install @dxatscale/sfpowerscripts@alpha
-
+  
       - name: 'Authenticate Dev Hub'
         run: |
           echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./authfile

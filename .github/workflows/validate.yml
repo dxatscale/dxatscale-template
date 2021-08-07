@@ -17,6 +17,13 @@ jobs:
     name: 'Validate Changed Packages'
     runs-on: ubuntu-latest
     container: dxatscale/sfpowerscripts
+    env:
+      #SET ONE OF THESE FOR METRICS
+      #SFPOWERSCRIPTS_NEWRELIC: 'true'
+      #SFPOWERSCRIPTS_NEWRELIC_API_KEY: '${{ secrets.NEWRELIC_INGEST_KEY }}'
+      #SFPOWERSCRIPTS_DATADOG: 'true'
+      #SFPOWERSCRIPTS_DATADOG_HOST: '${{ secrets.DATADOG_HOST }}'
+      #SFPOWERSCRIPTS_DATADOG_API_KEY: '${{ secrets.DATADOG_API_KEY }}'
     steps:
       - uses: actions/checkout@v2
         with:
@@ -34,7 +41,7 @@ jobs:
 
       # Validate source and trigger test
       - name: 'Push source to scratch org'
-        run: 'sfdx sfpowerscripts:orchestrator:validate -p ci -v devhub '
+        run: 'sfdx sfpowerscripts:orchestrator:validate -p ci -v devhub -x'
 
   static:
     name: 'static-analysis-of-Apex-classes-using-PMD'
