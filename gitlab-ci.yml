@@ -101,7 +101,7 @@ validate-source:
     - sfdx sfpowerscripts:orchestrator:validate -p CI1 -v "$DEVHUB_ALIAS" -x
   
 
-## 2. This pipeline quickbuilds, deploy to QA, builds and publishes packages to artifact repository
+## 2. This pipeline quickbuilds, deploy to DEV, builds and publishes packages to artifact repository
 
 #Build packages (unlocked/source/data) in a repo in parallel, without validating depenencies or coverage in the case of unlocked packages 
 quickbuild: 
