@@ -1,4 +1,14 @@
-# This pipeline builds and publishes packages to artifact repository
+# DX@Scale CI/CD Template for GitHub
+#----------------------------------------------------------------------------------------------------
+# Maintained by @aly76 for DX@Scale
+# Follows reference pipeline available at docs.dxatscale.io
+# 
+#-----------------------------------------------------------------------------------------------------
+# To know more about dxatscale, visit https://docs.dxatscale.io
+# To know more on sfpowerscripts, visit- https://sfpowerscripts.dxatscale.io/
+# To know more on sfpowerkit, visit- https://github.com/Accenture/sfpowerkit
+
+# This pipeline quickbuilds, deploy to DEV, builds and publishes packages to artifact repository
 
 name: 'CI Pipeline - Auto Triggered'
 

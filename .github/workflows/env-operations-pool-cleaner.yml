@@ -1,3 +1,14 @@
+# DX@Scale CI/CD Template for GitHub
+#----------------------------------------------------------------------------------------------------
+# Maintained by @aly76 for DX@Scale
+# Follows reference pipeline available at docs.dxatscale.io
+# 
+#-----------------------------------------------------------------------------------------------------
+# To know more about dxatscale, visit https://docs.dxatscale.io
+# To know more on sfpowerscripts, visit- https://sfpowerscripts.dxatscale.io/
+# To know more on sfpowerkit, visit- https://github.com/Accenture/sfpowerkit
+
+
 # This pipeline deletes all the scratch orgs from the pool on a set time, so that pools can be recreated with new artifacts
 
 name: 'Scratch Org Pool Cleaner - Auto Scheduled'
