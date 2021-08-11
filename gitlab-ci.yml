@@ -25,7 +25,8 @@ variables:
 
 # Authenticate DevHub using SFDX Auth URL and Generate NPM Configuration File for Package Registry 
 before_script:
-    - sfdx auth:sfdxurl:store -f "$DEVHUB_SFDX_AUTH_URL" -a "$DEVHUB_ALIAS"
+    - echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./authfile
+    - sfdx auth:sfdxurl:store -f ./authfile -a "$DEVHUB_ALIAS"
     - echo @${PKG_NAMESPACE}:registry=https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/packages/npm/ >> .npmrc
     - echo //${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN} >> .npmrc
 
@@ -120,7 +121,8 @@ deploy:
   stage: deploy
   needs: [quickbuild]  
   script:
-    - sfdx auth:sfdxurl:store -f "$DEV_SFDX_AUTH_URL" -a dev 
+    - echo "${{ secrets.DEV_SFDX_AUTH_URL }}" > ./dev_authfile
+    - sfdx auth:sfdxurl:store -f ./dev_authfile -a dev
     - sfdx sfpowerkit:package:dependencies:install -u dev -v "$DEVHUB_ALIAS"
     - sfdx sfpowerscripts:orchestrator:deploy -u dev
   dependencies:
@@ -152,7 +154,8 @@ ST:
   stage: release
   extends: .release-rules
   script:
-    - sfdx auth:sfdxurl:store -f "$ST_SFDX_AUTH_URL" -a st
+    - echo "${{ secrets.ST_SFDX_AUTH_URL }}" > ./st_authfile
+    - sfdx auth:sfdxurl:store -f ./st_authfile -a st
     - sfdx sfpowerscripts:orchestrator:release -u st -p releasedefinitions/releaseDefinition.yml --npm --npmrcpath .npmrc --scope "$PKG_NAMESPACE" 
   environment:
     name: ST
@@ -165,7 +168,8 @@ STAGING:
   extends: .release-rules
   needs: [ST]  
   script:
-    - sfdx auth:sfdxurl:store -f "$STAGING_SFDX_AUTH_URL" -a staging
+    - echo "${{ secrets.STAGING_SFDX_AUTH_URL }}" > ./staging_authfile
+    - sfdx auth:sfdxurl:store -f ./staging_authfile -a staging
     - sfdx sfpowerscripts:orchestrator:release -u st -p releasedefinitions/releaseDefinition.yml --npm --npmrcpath .npmrc --scope "$PKG_NAMESPACE" 
   environment:
     name: STAGING
@@ -179,7 +183,8 @@ PROD:
   extends: .release-rules
   needs: [STAGING]  
   script:
-    - sfdx auth:sfdxurl:store -f "$DEVHUB_SFDX_AUTH_URL" -a prod
+    - echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./prod_authfile
+    - sfdx auth:sfdxurl:store -f ./prod_authfile -a prod
     - sfdx sfpowerscripts:orchestrator:release -u prod -p releasedefinitions/releaseDefinition.yml --npm --npmrcpath .npmrc --scope "$PKG_NAMESPACE" 
   environment:
     name: PROD
