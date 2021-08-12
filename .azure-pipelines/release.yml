@@ -1,23 +1,45 @@
+# DX@Scale CI/CD Template for Azure Pipelines
+#-----------------------------------------------------------------------------------------------------------
+# Maintained by @ramesh-karanji(Ramesh Karanji)
+# Follows reference pipeline available at docs.dxatscale.io
+# 
+#------------------------------------------------------------------------------------------------------------
+# To know more about dxatscale, visit https://docs.dxatscale.io
+# To know more on sfpowerscripts, visit- https://sfpowerscripts.dxatscale.io/
+# To know more on sfpowerkit, visit- https://github.com/Accenture/sfpowerkit
+# 
+# Unlocked Package deployment to Envrionments
+
 name: 'CD Pipeline - User Triggered'
 
 trigger: none
 pr: none
 
+# parameters and their data types used in pipeline
 parameters:
   - name: releasedefintionPath
     displayName: 'Path to release definition file'
     type: string
     default: 'releaseDefinitions/release-1.0.yml'
 
+#Custom Variables
+variables:
+  - group: CICD
+  
 stages:
     - stage: release
+# Release Package to ST    
       displayName: release
       jobs:
           - deployment: release_st
             environment: st
             displayName: 'release to st'
+            
+# Runs on the mentioned Image                         
             pool:
                 vmImage: 'ubuntu-latest'
+
+#The docker container contains sfpowerscripts and the dependencies it needs to run, # refer to https://hub.docker.com/r/dxatscale/sfpowerscripts                  
             container: dxatscale/sfpowerscripts:latest
             strategy:
              runOnce:
@@ -26,31 +48,38 @@ stages:
                  - checkout: self
                    persistCredentials: true
 
+# Authenticate NPM
                  - task: DownloadSecureFile@1
                    name: npmrc
                    inputs:
-                      secureFile: ~/.npmrc
+                      secureFile: .npmrc
 
                  - task: npmAuthenticate@0
                    inputs:
                       workingFile: $(npmrc.secureFilePath)
 
+# Authenticate ST
                  - script: |
                         echo $(ST_SFDX_AUTH_URL) > ./authfile
                         sfdx auth:sfdxurl:store -f authfile -a st
                    displayName: 'Authenticate to ST'
 
+#Deploy package to ST         
                  - task: CmdLine@2
                    displayName: 'Deploy packages to st'
                    inputs:
                       script: 'sfdx sfpowerscripts:orchestrator:release -u st -p ${{ parameters.releasedefintionPath }} --npm --scope  ${ scope } --npmrcpath $(npmrc.secureFilePath) --generatechangelog'
 
-
+# Release Package to SIT    
           - deployment: release_sit
             environment: sit
             displayName: 'release to sit'
+
+# Runs on the mentioned Image                         
             pool:
                 vmImage: 'ubuntu-latest'
+
+#The docker container contains sfpowerscripts and the dependencies it needs to run, # refer to https://hub.docker.com/r/dxatscale/sfpowerscripts                  
             container: dxatscale/sfpowerscripts:latest
             strategy:
              runOnce:
@@ -59,54 +88,65 @@ stages:
                  - checkout: self
                    persistCredentials: true
 
+# Authenticate NPM
                  - task: DownloadSecureFile@1
                    name: npmrc
                    inputs:
-                      secureFile: ~/.npmrc
+                      secureFile: .npmrc
 
                  - task: npmAuthenticate@0
                    inputs:
                       workingFile: $(npmrc.secureFilePath)
 
+# Authenticate SIT
                  - script: |
                         echo $(SIT_SFDX_AUTH_URL) > ./authfile
                         sfdx auth:sfdxurl:store -f authfile -a sit
                    displayName: 'Authenticate to SIT'
 
+#Deploy package to SIT
                  - task: CmdLine@2
                    displayName: 'Deploy packages to SIT'
                    inputs:
                       script: 'sfdx sfpowerscripts:orchestrator:release -u sit -p ${{ parameters.releasedefintionPath }} --npm --scope  ${ scope } --npmrcpath $(npmrc.secureFilePath) --generatechangelog'
 
-         - deployment: release_prod
+# Release Package to PROD    
+          - deployment: release_prod
             environment: prod
             displayName: 'release to prod'
             condition: eq(variables['Build.SourceBranch'], 'refs/heads/release/')
+
+# Runs on the mentioned Image             
             pool:
-                vmImage: 'ubuntu-latest'
+                  vmImage: 'ubuntu-latest'
+
+#The docker container contains sfpowerscripts and the dependencies it needs to run, # refer to https://hub.docker.com/r/dxatscale/sfpowerscripts                  
             container: dxatscale/sfpowerscripts:latest
             strategy:
-             runOnce:
-               deploy:
+            runOnce:
+              deploy:
                 steps:
-                 - checkout: self
-                   persistCredentials: true
+                - checkout: self
+                  persistCredentials: true
 
-                 - task: DownloadSecureFile@1
-                   name: npmrc
-                   inputs:
-                      secureFile: ~/.npmrc
+# Authenticate NPM
+                - task: DownloadSecureFile@1
+                  name: npmrc
+                  inputs:
+                      secureFile: .npmrc
 
-                 - task: npmAuthenticate@0
-                   inputs:
+                - task: npmAuthenticate@0
+                  inputs:
                       workingFile: $(npmrc.secureFilePath)
 
-                 - script: |
+# Authenticate PROD
+                - script: |
                         echo $(DEVHUB_SFDX_AUTH_URL) > ./authfile
                         sfdx auth:sfdxurl:store -f authfile -a prod
-                   displayName: 'Authenticate to SIT'
+                  displayName: 'Authenticate to Prod'
 
-                 - task: CmdLine@2
-                   displayName: 'Deploy packages to SIT'
-                   inputs:
+#Deploy Package to Prod
+                - task: CmdLine@2
+                  displayName: 'Deploy packages to Prod'
+                  inputs:
                       script: 'sfdx sfpowerscripts:orchestrator:release -u prod -p ${{ parameters.releasedefintionPath }} --npm --scope ${ scope } --npmrcpath $(npmrc.secureFilePath) --generatechangelog'

@@ -1,34 +1,48 @@
+# DX@Scale CI/CD Template for Azure Pipelines
+#-----------------------------------------------------------------------------------------------------------
+# Maintained by @ramesh-karanji(Ramesh Karanji)
+# Follows reference pipeline available at docs.dxatscale.io
+# 
+#------------------------------------------------------------------------------------------------------------
+# To know more about dxatscale, visit https://docs.dxatscale.io
+# To know more on sfpowerscripts, visit- https://sfpowerscripts.dxatscale.io/
+# To know more on sfpowerkit, visit- https://github.com/Accenture/sfpowerkit
+# 
 # Clean existing pools of scratch orgs
 
 name: 'Scratch Org Recycler - User Triggered'
 trigger: none
 pr: none
 
-
+# parameters and their data types used in pipeline
 parameters:
   - name: username
     displayName: 'Username of the scratch org'
     type: string
 
+#Custom Variables
+variables:
+  - group: CICD
 
+# Runs build on the mentioned Image  
 pool:
     vmImage: 'ubuntu-latest'
 
 # Drop only unused scratch orgs in the pool for recycling, else users will loose their existing scratch orgs
 jobs:
   - job: 
+#The docker container contains sfpowerscripts and the dependencies it needs to run, # refer to https://hub.docker.com/r/dxatscale/sfpowerscripts                  
     container: dxatscale/sfpowerscripts:latest
     displayName: "Return a used scratch org to the pool ${{ parameters.username }}"
     steps:
-    - script: |
-          echo 'y' | sfdx plugins:install @dxatscale/sfpowersripts@alpha
-      displayName: 'Switch sfpowerscripts to alpha'
 
+# Authenticate DevHub
     - script: |
           echo $(DEVHUB_SFDX_AUTH_URL) > ./authfile
           sfdx auth:sfdxurl:store -f authfile -a devhub
       displayName: 'Authenticate DevHub'
 
+## Delete Scratch Org
     - script: |
           sfdx sfpowerscripts:pool:org:delete -u ${{ parameters.username }} -v devhub
       displayName: 'Delete scratch org ${{ parameters.username }}'

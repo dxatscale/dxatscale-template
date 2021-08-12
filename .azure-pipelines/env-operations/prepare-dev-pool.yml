@@ -1,9 +1,20 @@
-# Prepare a pool of dev scratch orgs
+## DX@Scale CI/CD Template for Azure Pipelines
+#-----------------------------------------------------------------------------------------------------------
+# Maintained by @ramesh-karanji(Ramesh Karanji)
+# Follows reference pipeline available at docs.dxatscale.io
+# 
+#------------------------------------------------------------------------------------------------------------
+# To know more about dxatscale, visit https://docs.dxatscale.io
+# To know more on sfpowerscripts, visit- https://sfpowerscripts.dxatscale.io/
+# To know more on sfpowerkit, visit- https://github.com/Accenture/sfpowerkit
+#
+# Prepare a pool of DEV scratch orgs
 
 name: 'Replenish DEV Pools - Auto Triggered'
 trigger: none
 pr: none
 
+# Trigger Schedule
 schedules:
     - cron: '0 0 * * *'
       displayName: Daily midnight prepare pool
@@ -12,22 +23,47 @@ schedules:
               - main
       always: true
 
+# Runs build on the mentioned Image   
 pool:
     vmImage: 'ubuntu-latest'
 
+#The docker container contains sfpowerscripts and the dependencies it needs to run, # refer to https://hub.docker.com/r/dxatscale/sfpowerscripts                
 container: dxatscale/sfpowerscripts:latest
 
-steps:
-    
-    - script: |
-          echo 'y' | sfdx plugins:install @dxatscale/sfpowersripts@alpha
-      displayName: 'Switch sfpowerscripts to alpha'
+#Custom Variables
+variables:
+  - group: CICD
 
+steps:    
+# Authenticate DevHub 
     - script: |
           echo $(DEVHUB_SFDX_AUTH_URL) > ./authfile
           sfdx auth:sfdxurl:store -f authfile -a devhub
       displayName: 'Authenticate DevHub'
 
+# Authenticate NPM
+    - task: DownloadSecureFile@1
+      name: npmrc
+      inputs:
+          secureFile: .npmrc
+
+    - task: npmAuthenticate@0
+      inputs:
+        workingFile: $(npmrc.secureFilePath)     
+
+## Scratch Org Pool creation  for DEV's
     - script: |
           sfdx sfpowerscripts:orchestrator:prepare -f config/devpool.json -v devhub
       displayName: 'Prepare a pool of scratch orgs'
+
+
+    - task: CopyFiles@2
+      inputs:
+            contents: '.sfpowerscripts/prepare_logs/**'
+            targetFolder: $(Build.ArtifactStagingDirectory)
+
+#Publish logs to artifacts              
+    - task: PublishBuildArtifacts@1
+      inputs:
+            pathToPublish: $(Build.ArtifactStagingDirectory)
+            artifactName: PrepareLogs

@@ -1,42 +1,75 @@
+# DX@Scale CI/CD Template for Azure Pipelines
+#-----------------------------------------------------------------------------------------------------------
+# Maintained by @ramesh-karanji(Ramesh Karanji)
+# Follows reference pipeline available at docs.dxatscale.io
+# 
+#------------------------------------------------------------------------------------------------------------
+# To know more about dxatscale, visit https://docs.dxatscale.io
+# To know more on sfpowerscripts, visit- https://sfpowerscripts.dxatscale.io/
+# To know more on sfpowerkit, visit- https://github.com/Accenture/sfpowerkit
+ 
+# This Build template will be triggered if a change is pushed or merged to main branch. 
+#
+#
+# QuickBuild: Create Unlocked Package without dependency Check​
+#         Creates a new package version of Runtime Unlocked Package without any package dependency check​
+# Deploy: Deploy to Dev Sandbox to validate the package changes
+# Build: Create Unlocked Package with dependency Check​
+#         
 name: 'CI Pipeline - Auto Triggered'
 
+# Build pushes to main so we can release merged changes
 trigger:
     - main
     - release/**
   
+# Build pull requests so we can test them
 pr: none
 
+#Custom Variables
+variables:
+  - group: CICD
+
+#Stages to run as part merged changes  
 stages:
     - stage: QuickBuild
+#quickBuild packages (unlocked/source/data) in a repo in parallel
       displayName: QuickBuild
       dependsOn: []
       jobs:
           - job: QuickBuildJob
             displayName: 'Quick Build the packages'
-           
+
+# Runs build on the mentioned Image                
             pool:
                 vmImage: 'ubuntu-latest'
+
+#The docker container contains sfpowerscripts and the dependencies it needs to run, # refer to https://hub.docker.com/r/dxatscale/sfpowerscripts                
             container: dxatscale/sfpowerscripts:latest
+
             steps:
                 - checkout: self
 
+# Authenticate DevHub
                 - script: |
                         echo $(DEVHUB_SFDX_AUTH_URL) > ./authfile
                         sfdx auth:sfdxurl:store -f authfile -a devhub
                   displayName: 'Authenticate DevHub'
 
+#Build packages (unlocked/source/data) in a repo in parallel, without validating depenencies or coverage in the case of unlocked packages                  
                 - task: CmdLine@2
                   displayName: 'Build All Packages'
                   inputs:
                       script: 'sfdx sfpowerscripts:orchestrator:quickbuild -v devhub --branch main --diffcheck'
 
+#Publish package(s)
                 - task: PublishBuildArtifacts@1
                   inputs:
                       PathtoPublish: 'artifacts'
                       ArtifactName: 'quickbuild-artifacts'
                       publishLocation: 'Container'
 
-#Utilizes a deployment job to make use of environments feature for exclusive lock
+#Deploy packages from the quick build
     - stage: Deploy
       displayName: 'Deploy and Validate the packages'
       dependsOn: QuickBuild
@@ -44,46 +77,55 @@ stages:
           - deployment: deploy
             environment: 'deploy'
             displayName: 'Deploy the packages'
-  
+
+# Runs build on the mentioned Image       
             pool:
                 vmImage: 'ubuntu-latest'
+
+#The docker container contains sfpowerscripts and the dependencies it needs to run, # refer to https://hub.docker.com/r/dxatscale/sfpowerscripts                
             container: dxatscale/sfpowerscripts:latest
+
             strategy:
              runOnce:
               deploy:
                steps:
                 - checkout: self
 
+#Download artifacts of quick build
                 - task: DownloadBuildArtifacts@0
                   inputs:
                       artifactName: 'quickbuild-artifacts'
                       downloadPath: artifacts
 
-          
+# Authenticate DEV Sandbbox                  
                 - script: |
                         echo $(DEV_SFDX_AUTH_URL) > ./authfile
                         sfdx auth:sfdxurl:store -f authfile -a dev
                   displayName: 'Authenticate to dev'
 
-
+#Deploy packages from the provided aritfact directory, to a given org,                  
                 - task: CmdLine@2
                   displayName: 'Deploy packages to dev'
                   inputs:
                       script: 'sfdx sfpowerscripts:orchestrator:deploy -u dev'
 
 
-#Utilizes a deployment job to make use of environments feature for exclusive lock
+#Build all packages (unlocked/source/data) 
     - stage: Build
       displayName: 'Build Production Ready Packages and Publish'
-      dependsOn: Deploy
+      dependsOn: []
       jobs:
           - deployment : BuildJob
             environment: build
             displayName: 'Build the packages'
 
+# Runs build on the mentioned Image              
             pool:
                 vmImage: 'ubuntu-latest'
+
+#The docker container contains sfpowerscripts and the dependencies it needs to run, # refer to https://hub.docker.com/r/dxatscale/sfpowerscripts                
             container: dxatscale/sfpowerscripts:latest
+
             strategy:
              runOnce:
               deploy:
@@ -91,31 +133,35 @@ stages:
                 - checkout: self
                   persistCredentials: true
 
+# Authenticate DevHub        
                 - script: |
                         echo $(DEVHUB_SFDX_AUTH_URL) > ./authfile
                         sfdx auth:sfdxurl:store -f authfile -a devhub
                   displayName: 'Authenticate DevHub'
 
+# Authenticate NPM
+                - task: DownloadSecureFile@1
+                  name: npmrc
+                  inputs:
+                      secureFile: .npmrc
+
                 - task: npmAuthenticate@0
                   inputs:
-                   workingFile: $(npmrc.secureFilePath)
+                    workingFile: $(npmrc.secureFilePath)
 
+#Build all packages (unlocked/source/data) in a repo in parallel, respecting the dependency of each packages and generate artifacts to a provided directory
                 - task: CmdLine@2
                   displayName: 'Build All Packages'
                   inputs:
                       script: 'sfdx sfpowerscripts:orchestrator:build -v devhub --branch main --diffcheck'
 
+#Publish packages to an artifact registry
                 - script: |
-                   sfdx sfpowerscripts:orchestrator:publish --npm --scope  ${ scope } --npmrcpath $(npmrc.secureFilePath) --gittag --pushgittag
+                   sfdx sfpowerscripts:orchestrator:publish --npm --npmtag main --scope dxatscale --npmrcpath $(npmrc.secureFilePath)  --gittag --pushgittag
                   displayName: 'Publish artifacts to NPM registry'
-
-
+                
                 - task: PublishBuildArtifacts@1
                   inputs:
                       PathtoPublish: 'artifacts'
                       ArtifactName: 'validated-artifacts'
                       publishLocation: 'Container'
-
-
-
- 

@@ -1,9 +1,20 @@
+# DX@Scale CI/CD Template for Azure Pipelines
+#-----------------------------------------------------------------------------------------------------------
+# Maintained by @ramesh-karanji(Ramesh Karanji)
+# Follows reference pipeline available at docs.dxatscale.io
+# 
+#------------------------------------------------------------------------------------------------------------
+# To know more about dxatscale, visit https://docs.dxatscale.io
+# To know more on sfpowerscripts, visit- https://sfpowerscripts.dxatscale.io/
+# To know more on sfpowerkit, visit- https://github.com/Accenture/sfpowerkit
+# 
 # Clean existing pools of scratch orgs
 
 name: 'Scratch Org Pool Cleaner - Auto Scheduled'
 trigger: none
 pr: none
 
+# Trigger Schedule
 schedules:
     - cron: '0 23 * * *'
       displayName: Scratch Org Pool Cleaner Scheduled Trigger
@@ -12,24 +23,29 @@ schedules:
               - main
       always: true
 
+# Runs build on the mentioned Image   
 pool:
     vmImage: 'ubuntu-latest'
+
+#Custom Variables
+variables:
+  - group: CICD
 
 # Drop only unused scratch orgs in the pool for recycling, else users will loose their existing scratch orgs
 jobs:
   - job: 
+#The docker container contains sfpowerscripts and the dependencies it needs to run, # refer to https://hub.docker.com/r/dxatscale/sfpowerscripts                  
     container: dxatscale/sfpowerscripts:latest
     displayName: "Delete Dev Pool"
     steps:
-    - script: |
-          echo 'y' | sfdx plugins:install @dxatscale/sfpowersripts@alpha
-      displayName: 'Switch sfpowerscripts to alpha'
-
+    
+# Authenticate DevHub 
     - script: |
           echo $(DEVHUB_SFDX_AUTH_URL) > ./authfile
           sfdx auth:sfdxurl:store -f authfile -a devhub
       displayName: 'Authenticate DevHub'
 
+#Clean Dev pool
     - script: |
           sfdx sfpowerscripts:pool:delete -t dev -v devhub
       displayName: 'Delete Dev Pool'
@@ -37,19 +53,19 @@ jobs:
 
 # Drop all scratch orgs in  the case of CI pool, its better to recreate every time
   - job: 
+#The docker container contains sfpowerscripts and the dependencies it needs to run, # refer to https://hub.docker.com/r/dxatscale/sfpowerscripts                  
     container: dxatscale/sfpowerscripts:latest
     displayName: "Delete CI Pool"
     dependsOn: []
     steps:
-    - script: |
-          echo 'y' | sfdx plugins:install @dxatscale/sfpowersripts@alpha
-      displayName: 'Switch sfpowerscripts to alpha'
 
+# Authenticate DevHub 
     - script: |
           echo $(DEVHUB_SFDX_AUTH_URL) > ./authfile
           sfdx auth:sfdxurl:store -f authfile -a devhub
       displayName: 'Authenticate DevHub'
 
+#Clean CI pool
     - script: |
           sfdx sfpowerscripts:pool:delete -t ci -v devhub -a
       displayName: 'Delete CI Pool'
