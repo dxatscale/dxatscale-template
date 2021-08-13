@@ -96,5 +96,5 @@ stages:
 #Validate the incoming change against a prepared scratch org fetched from the provided CI pools 
 # and marks Scratch Org for deletion
             - script: |
-                    npx sfdx sfpowerscripts:orchestrator:validate -x -p ci -v devhub --loglevel debug
+                    sfdx sfpowerscripts:orchestrator:validate -x -p ci -v devhub --loglevel debug
               displayName: 'Validate Source'

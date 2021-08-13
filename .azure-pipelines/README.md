@@ -5,7 +5,7 @@ This repo contains the follwing YAML based Azure Pipeline defintions
 -  validate.yml
    Pull Request Validation Pipeline, that validates incoming changes against a scratch org fetched from the pool
    
-- build.yml
+- quick-build-deploy.yml
    Pipeline that gets triggered on a merge to the trunk (main), resulting in building a set of packages, deploying to a dev sandbox ( and then build a set of validated packages and finally publish that to artifact repository
 
 - release.yml
@@ -38,4 +38,10 @@ The sample pipelines utilise an azure pipelines variable group called DEVHUB whi
 - SIT_SFDX_AUTH_URL: The auth url to SIT Sandbox, You can retrieve the auth URL by following the ling here https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference_auth_sfdxurl.htm
 
 -  scope : Scope for the packages to be published to the repository 
+
+- Azure Variable group: to configure Auth URL's required for pipelines to connect 
+
+- Azure Artifacts: It supports publishing and consuming npm packages to and from Azure Artifacts feeds and public registries. Use this quickstart to create your feed, set up your .npmrc file, build your project, and publish your npm packages to your feed.
+https://docs.microsoft.com/en-us/azure/devops/artifacts/get-started-npm?view=azure-devops
+https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/package/npm-authenticate?view=azure-devops
 

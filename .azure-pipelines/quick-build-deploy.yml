@@ -113,7 +113,7 @@ stages:
 #Build all packages (unlocked/source/data) 
     - stage: Build
       displayName: 'Build Production Ready Packages and Publish'
-      dependsOn: []
+      dependsOn: Deploy
       jobs:
           - deployment : BuildJob
             environment: build
@@ -157,7 +157,7 @@ stages:
 
 #Publish packages to an artifact registry
                 - script: |
-                   sfdx sfpowerscripts:orchestrator:publish --npm --npmtag main --scope dxatscale --npmrcpath $(npmrc.secureFilePath)  --gittag --pushgittag
+                   sfdx sfpowerscripts:orchestrator:publish --npm --npmtag main --scope ${ scope } --npmrcpath $(npmrc.secureFilePath)  --gittag --pushgittag
                   displayName: 'Publish artifacts to NPM registry'
                 
                 - task: PublishBuildArtifacts@1

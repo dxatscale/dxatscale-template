@@ -53,17 +53,11 @@ steps:
 ## Scratch Org Pool creation  for CI 
 
     - script: |
-          sfdx sfpowerscripts:orchestrator:prepare -f config/cipool.json -v devhub
+          sfdx sfpowerscripts:orchestrator:prepare -f config/cipool.json -v devhub --npmrcpath $(npmrc.secureFilePath)
       displayName: 'Prepare a pool of scratch orgs'
 
-
-    - task: CopyFiles@2
-      inputs:
-            contents: '.sfpowerscripts/prepare_logs/**'
-            targetFolder: $(Build.ArtifactStagingDirectory)
-
-#Publish logs to artifacts            
+#Publish logs to artifacts             
     - task: PublishBuildArtifacts@1
       inputs:
-            pathToPublish: $(Build.ArtifactStagingDirectory)
+            pathToPublish: .sfpowerscripts/prepare_logs/
             artifactName: PrepareLogs
