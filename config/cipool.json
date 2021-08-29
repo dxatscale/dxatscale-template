@@ -1,0 +1,17 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Accenture/sfpowerscripts/develop/packages/sfpowerscripts-cli/resources/schemas/pooldefinition.schema.json",
+  "tag": "ci",
+   "maxAllocation": 5,
+   "expiry": 2,
+   "batchSize": 5,
+   "configFilePath": "config/project-scratch-def.json",
+   "enableSourceTracking": false,
+   "installAll": true,
+    "fetchArtifacts": {
+      "npm": {
+        "scope": "@org-name",
+        "npmtag": "main"
+      }
+    }
+ 
+ }

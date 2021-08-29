@@ -1,0 +1,153 @@
+# DX@Scale CI/CD Template for Azure Pipelines
+#-----------------------------------------------------------------------------------------------------------
+# Maintained by @ramesh-karanji(Ramesh Karanji)
+# Follows reference pipeline available at docs.dxatscale.io
+# 
+#------------------------------------------------------------------------------------------------------------
+# To know more about dxatscale, visit https://docs.dxatscale.io
+# To know more on sfpowerscripts, visit- https://sfpowerscripts.dxatscale.io/
+# To know more on sfpowerkit, visit- https://github.com/Accenture/sfpowerkit
+ 
+# This pipeline quickbuilds, deploy to DEV, builds and publishes packages to artifact repository
+#
+#
+# --- To report metrics about the pipeline to datadog or newrelic, set these variables in CICD group
+#
+#  #SFPOWERSCRIPTS_NEWRELIC: 'true'
+#  #SFPOWERSCRIPTS_NEWRELIC_API_KEY: '<NEWRELIC_INSIGHT_INSERT_KEYS>'
+# 
+#  or if you are using Datadog
+#  #SFPOWERSCRIPTS_DATADOG: 'true'
+#  #SFPOWERSCRIPTS_DATADOG_HOST: '<DATADOG-HOST>'
+#  #SFPOWERSCRIPTS_DATADOG_API_KEY: '<DATADOG-API-KEY>'
+#
+# or if you are using a Hosted StatsD server
+#  
+#  # SFPOWERSCRIPTS_STATSD: 'true'
+#  # SFPOWERSCRIPTS_STATSD_HOST: '<STATSD_HOST_IP>'
+# --------------------------------------------------------------------------------------------------------
+
+name: 'CI Pipeline - Auto Triggered'
+
+# Build pushes to main so we can release merged changes
+trigger:
+    - main
+    - release/**
+
+pr: none
+
+#Variable group that stores all the dependendent variables
+variables:
+  - group: CICD
+
+
+#Stages to run as part merged changes  
+stages:
+    #quickBuild packages (unlocked/source/data) in a repo in parallel
+    - stage: QuickBuild
+      displayName: QuickBuild
+      dependsOn: []
+      condition: contains(variables['build.sourceBranch'], 'refs/heads/main')
+      jobs:
+          - job: QuickBuildJob
+            displayName: 'Quick Build the packages'
+
+# Runs build on the mentioned Image                
+            pool:
+                vmImage: 'ubuntu-latest'
+            container: dxatscale/sfpowerscripts:latest
+
+            steps:
+                - checkout: self
+
+                - script: |
+                        echo $(DEVHUB_SFDX_AUTH_URL) > ./authfile
+                        sfdx auth:sfdxurl:store -f authfile -a devhub
+                  displayName: 'Authenticate DevHub'
+
+                - task: CmdLine@2
+                  displayName: 'Build All Packages'
+                  inputs:
+                      script: sfdx sfpowerscripts:orchestrator:quickbuild -v devhub --branch main --diffcheck --buildnumber $(Build.BuildId)
+
+                - task: PublishBuildArtifacts@1
+                  inputs:
+                      PathtoPublish: 'artifacts'
+                      ArtifactName: 'quickbuild-artifacts'
+                      publishLocation: 'Container'
+
+#Deploy packages from the quick build
+    - stage: Deploy
+      displayName: 'Deploy and Validate the packages'
+      dependsOn: QuickBuild
+      lockBehavior: runLatest
+      condition: and(contains(variables['build.sourceBranch'], 'refs/heads/main'),succeeded())
+      jobs:
+          - job: deploy
+            displayName: 'Deploy the packages'
+            pool:
+                vmImage: 'ubuntu-latest'
+            container: dxatscale/sfpowerscripts:latest
+            steps:
+                - checkout: self
+
+                - task: DownloadBuildArtifacts@0
+                  inputs:
+                      artifactName: 'quickbuild-artifacts'
+                      downloadPath: artifacts
+                
+                - script: |
+                        echo $(DEV_SFDX_AUTH_URL) > ./authfile
+                        sfdx auth:sfdxurl:store -f authfile -a dev
+                  displayName: 'Authenticate to dev'
+               
+                - script: sfdx sfpowerscripts:orchestrator:deploy -u dev --skipifalreadyinstalled -g "##[group],##[endgroup]" 
+                  displayName: 'Deploy to dev'
+
+
+#Build all packages (unlocked/source/data) and publish to artifact repository
+    - stage: Build
+      displayName: 'Build Production Ready Packages and Publish'
+      dependsOn: Deploy
+      lockBehavior: runLatest
+      condition: and(or(contains(variables['build.sourceBranch'], 'refs/heads/main'), contains(variables['build.sourceBranch'], 'refs/heads/release*')),succeeded())
+      jobs:
+          - job : BuildJob
+            displayName: 'Build the packages'          
+            pool:
+                vmImage: 'ubuntu-latest'
+            container: dxatscale/sfpowerscripts:latest
+            steps:
+                - checkout: self
+                  persistCredentials: true
+    
+                - script: |
+                        echo $(DEVHUB_SFDX_AUTH_URL) > ./authfile
+                        sfdx auth:sfdxurl:store -f authfile -a devhub
+                  displayName: 'Authenticate DevHub'
+
+                - task: DownloadSecureFile@1
+                  name: npmrc
+                  inputs:
+                      secureFile: .npmrc
+
+                - task: npmAuthenticate@0
+                  inputs:
+                    workingFile: $(npmrc.secureFilePath)
+
+
+                - script: |
+                      sfdx sfpowerscripts:orchestrator:build -v devhub --branch main --diffcheck --buildnumber $(Build.BuildId)
+                  displayName: 'Build Packages'
+
+                - script: |
+                   sfdx sfpowerscripts:orchestrator:publish --npm --scope $(scope) --npmrcpath $(npmrc.secureFilePath)  --gittag --pushgittag
+                  displayName: 'Publish artifacts to NPM registry'
+                  env:
+                    SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+                
+                - task: PublishBuildArtifacts@1
+                  inputs:
+                      PathtoPublish: 'artifacts'
+                      ArtifactName: 'validated-artifacts'
+                      publishLocation: 'Container'

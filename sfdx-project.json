@@ -1,0 +1,88 @@
+{
+    "packageDirectories": [
+        {
+            "path": "./src-env-specific-pre",
+            "package": "src-env-specific-pre",
+            "versionNumber": "1.0.0.0",
+            "ignoreOnStage": [
+                "prepare",
+                "validate",
+                "quickbuild",
+                "build"
+            ]
+        },
+        {
+            "path": "./src-env-specific-alias-pre",
+            "package": "src-env-specific-alias-pre",
+            "versionNumber": "1.0.0.0",
+            "aliasfy": true,
+            "ignoreOnStage": [
+                "prepare",
+                "validate",
+                "quickbuild",
+                "build"
+            ]
+        },
+        {
+            "path": "./src/core-crm",
+            "package": "core",
+            "versionName": "Version 1.0.0",
+            "versionNumber": "1.0.0.0"
+        },
+        {
+            "path": "./src-ui",
+            "package": "src-ui",
+            "versionNumber": "1.1.0.0",
+            "ignoreOnStage": [
+                "prepare",
+                "validate",
+                "quickbuild",
+                "build"
+            ]
+        },
+        {
+            "path": "./src-access-management",
+            "package": "src-access-management",
+            "versionNumber": "1.0.0.0",
+            "ignoreOnStage": [
+                "prepare",
+                "validate",
+                "quickbuild",
+                "build"
+            ]
+        },
+        {
+            "path": "./src-env-specific-alias-post",
+            "package": "src-env-specific-alias-post",
+            "versionNumber": "1.0.0.0",
+            "aliasfy": true,
+            "alwaysDeploy": true,
+            "ignoreOnStage": [
+                "prepare",
+                "validate",
+                "quickbuild",
+                "build"
+            ]
+        },
+        {
+            "path": "./src-temp",
+            "package": "src-temp",
+            "versionName": "Version 1.0.0",
+            "versionNumber": "1.0.0.0",
+            "default": true,
+            "ignoreOnStage": [
+                "prepare",
+                "validate",
+                "quickbuild",
+                "build"
+            ]
+        }
+    ],
+    "namespace": "",
+    "sfdcLoginUrl": "https://login.salesforce.com",
+    "sourceApiVersion": "52.0",
+    "packageAliases": {
+    },
+    "plugins": {
+    }
+}

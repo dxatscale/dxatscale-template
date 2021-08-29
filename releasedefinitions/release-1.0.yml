@@ -1,0 +1,10 @@
+release: "Release-1.0"
+skipIfAlreadyInstalled: true
+artifacts:
+  #src-env-specific-alias-pre: main
+  core: main
+  #src-ui: main
+  #src-access-management: main
+  #src-env-specific-alias-post: main
+changelog:
+  workItemFilter: "issues/[0-9]+"

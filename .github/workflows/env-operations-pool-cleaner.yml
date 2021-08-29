@@ -1,0 +1,72 @@
+# DX@Scale CI/CD Template for GitHub
+#----------------------------------------------------------------------------------------------------
+# Maintained by @aly76 for DX@Scale
+# Follows reference pipeline available at docs.dxatscale.io
+# 
+#-----------------------------------------------------------------------------------------------------
+# To know more about dxatscale, visit https://docs.dxatscale.io
+# To know more on sfpowerscripts, visit- https://sfpowerscripts.dxatscale.io/
+# To know more on sfpowerkit, visit- https://github.com/Accenture/sfpowerkit
+
+
+# This pipeline deletes all the scratch orgs from the pool on a set time, so that pools can be recreated with new artifacts
+
+name: 'Scratch Org Pool Cleaner - Auto Scheduled'
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 13 * * *'
+
+
+
+#Set the environment variables for tracking metrics
+#env:
+  #SFPOWERSCRIPTS_NEWRELIC: 'true'
+  #SFPOWERSCRIPTS_NEWRELIC_API_KEY: '${{ secrets.NEWRELIC_INSIGHT_INSERT_KEYS }}'
+  #SFPOWERSCRIPTS_DATADOG: 'true'
+  #SFPOWERSCRIPTS_DATADOG_HOST: '${{ secrets.DATADOG_HOST }}'
+  #SFPOWERSCRIPTS_DATADOG_API_KEY: '${{ secrets.DATADOG_API_KEY }}'
+
+
+
+jobs:
+
+  clean-pool-dev:
+    name: 'Clean Dev Pool'
+    runs-on: ubuntu-latest
+    container: dxatscale/sfpowerscripts
+
+    steps:
+
+      - uses: actions/checkout@v2
+
+
+      - name: 'Authenticate Dev Hub'
+        run: |
+          echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./authfile
+          sfdx auth:sfdxurl:store -f authfile -a devhub
+
+
+      - name: 'Drop the pool'
+        run: 'sfdx sfpowerscripts:pool:delete -t dev -v devhub'
+
+  clean-pool-ci:
+    name: 'Clean CI Pool'
+    runs-on: ubuntu-latest
+    container: dxatscale/sfpowerscripts
+
+ 
+    steps:
+
+      - uses: actions/checkout@v2
+
+  
+      - name: 'Authenticate Dev Hub'
+        run: |
+          echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./authfile
+          sfdx auth:sfdxurl:store -f authfile -a devhub
+
+
+      - name: 'Drop the pool'
+        run: 'sfdx sfpowerscripts:pool:delete -t ci -v devhub -a'

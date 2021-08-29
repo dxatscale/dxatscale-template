@@ -1,0 +1,872 @@
+{
+  "name": "Salesforce CI/CD Dashboard",
+  "description": null,
+  "permissions": "PUBLIC_READ_WRITE",
+  "pages": [
+    {
+      "name": "CI/CD Performance",
+      "description": null,
+      "widgets": [
+        {
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "layout": {
+            "column": 1,
+            "row": 1,
+            "height": 2,
+            "width": 2
+          },
+          "title": "Avg. Time Taken to Create Pools",
+          "rawConfiguration": {
+            "dataFormatters": [],
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "SELECT average(sfpowerscripts.prepare.duration)/1000/60  AS 'Mins' FROM Metric SINCE this quarter"
+              }
+            ],
+            "thresholds": [
+              {
+                "alertSeverity": "WARNING",
+                "value": 180
+              },
+              {
+                "alertSeverity": "CRITICAL",
+                "value": 240
+              }
+            ]
+          },
+          "linkedEntityGuids": null
+        },
+        {
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "layout": {
+            "column": 3,
+            "row": 1,
+            "height": 2,
+            "width": 2
+          },
+          "title": "Average Time Taken for PR Validation",
+          "rawConfiguration": {
+            "dataFormatters": [],
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "SELECT average(sfpowerscripts.validate.duration)/1000/60 AS 'Mins' FROM Metric SINCE this quarter"
+              }
+            ],
+            "thresholds": [
+              {
+                "alertSeverity": "WARNING",
+                "value": 20
+              },
+              {
+                "alertSeverity": "CRITICAL",
+                "value": 45
+              }
+            ]
+          },
+          "linkedEntityGuids": null
+        },
+        {
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "layout": {
+            "column": 5,
+            "row": 1,
+            "height": 2,
+            "width": 2
+          },
+          "title": "Total Number of Scheduled Builds",
+          "rawConfiguration": {
+            "dataFormatters": [],
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "SELECT count(sfpowerscripts.build.scheduled) AS 'Builds' FROM Metric WHERE stage ='build'"
+              }
+            ],
+            "thresholds": []
+          },
+          "linkedEntityGuids": null
+        },
+        {
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "layout": {
+            "column": 7,
+            "row": 1,
+            "height": 2,
+            "width": 2
+          },
+          "title": "Number of Scheduled Deployments",
+          "rawConfiguration": {
+            "dataFormatters": [],
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "SELECT count(sfpowerscripts.deploy.scheduled) AS 'Deployments' FROM Metric SINCE this quarter"
+              }
+            ],
+            "thresholds": []
+          },
+          "linkedEntityGuids": null
+        },
+        {
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "layout": {
+            "column": 3,
+            "row": 3,
+            "height": 2,
+            "width": 2
+          },
+          "title": "Total Number of PR Validaton Runs",
+          "rawConfiguration": {
+            "dataFormatters": [],
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "SELECT sum(sfpowerscripts.validate.succeeded)+sum(sfpowerscripts.validate.failed) AS 'RUNS' FROM Metric SINCE this quarter"
+              }
+            ],
+            "thresholds": []
+          },
+          "linkedEntityGuids": null
+        },
+        {
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "layout": {
+            "column": 5,
+            "row": 3,
+            "height": 2,
+            "width": 2
+          },
+          "title": "Avg. Build Duration",
+          "rawConfiguration": {
+            "dataFormatters": [],
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "SELECT average(sfpowerscripts.build.duration)/1000/60 AS 'Mins' FROM Metric WHERE  is_diffcheck_enabled='true'AND stage='build' SINCE this quarter"
+              }
+            ],
+            "thresholds": [
+              {
+                "alertSeverity": "WARNING",
+                "value": 45
+              },
+              {
+                "alertSeverity": "CRITICAL",
+                "value": 60
+              }
+            ]
+          },
+          "linkedEntityGuids": null
+        },
+        {
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "layout": {
+            "column": 7,
+            "row": 3,
+            "height": 2,
+            "width": 2
+          },
+          "title": "Avg. Time Taken for Deployment",
+          "rawConfiguration": {
+            "dataFormatters": [],
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "SELECT average(sfpowerscripts.deploy.duration)/1000/60 AS 'Mins' FROM Metric  SINCE this quarter"
+              }
+            ],
+            "thresholds": [
+              {
+                "alertSeverity": "WARNING",
+                "value": 45
+              },
+              {
+                "alertSeverity": "CRITICAL",
+                "value": 60
+              }
+            ]
+          },
+          "linkedEntityGuids": null
+        },
+        {
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "layout": {
+            "column": 3,
+            "row": 5,
+            "height": 2,
+            "width": 2
+          },
+          "title": "Percentage of Successful PR Validation Runs",
+          "rawConfiguration": {
+            "dataFormatters": [],
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "SELECT (100 - (count(sfpowerscripts.validate.failed)/ (count(sfpowerscripts.validate.succeeded) + count(sfpowerscripts.validate.failed)))) AS '%' FROM Metric SINCE this quarter"
+              }
+            ],
+            "thresholds": [
+              {
+                "alertSeverity": "WARNING",
+                "value": 50
+              },
+              {
+                "alertSeverity": "CRITICAL",
+                "value": 25
+              }
+            ]
+          },
+          "linkedEntityGuids": null
+        },
+        {
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "layout": {
+            "column": 5,
+            "row": 5,
+            "height": 2,
+            "width": 2
+          },
+          "title": "Percentage of Successful Builds",
+          "rawConfiguration": {
+            "dataFormatters": [],
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "SELECT 100-(count(sfpowerscripts.build.succeeded.failed)/(count(sfpowerscripts.build.succeeded.packages)+count(sfpowerscripts.build.failed.packages))) AS '%' FROM  Metric WHERE is_dependency_validated ='true' SINCE this quarter"
+              }
+            ],
+            "thresholds": []
+          },
+          "linkedEntityGuids": null
+        }
+      ]
+    },
+    {
+      "name": "Build Statistics",
+      "description": null,
+      "widgets": [
+        {
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "layout": {
+            "column": 1,
+            "row": 1,
+            "height": 2,
+            "width": 3
+          },
+          "title": "Avg. Time Taken to Build Packages (Quickbuild/Diff)",
+          "rawConfiguration": {
+            "dataFormatters": [],
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "SELECT average(sfpowerscripts.build.duration)/1000/60 AS 'Mins' FROM Metric  WHERE stage='quickbuild' AND is_diffcheck_enabled='true' SINCE this quarter"
+              }
+            ],
+            "thresholds": []
+          },
+          "linkedEntityGuids": null
+        },
+        {
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "layout": {
+            "column": 4,
+            "row": 1,
+            "height": 2,
+            "width": 3
+          },
+          "title": "Avg. Time Taken to Build Packages (Build/Diff)",
+          "rawConfiguration": {
+            "dataFormatters": [],
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "SELECT average(sfpowerscripts.build.duration)/1000/60 AS 'Mins' FROM Metric  WHERE stage='build' AND is_diffcheck_enabled='true' SINCE this quarter"
+              }
+            ],
+            "thresholds": []
+          },
+          "linkedEntityGuids": null
+        },
+        {
+          "visualization": {
+            "id": "viz.stacked-bar"
+          },
+          "layout": {
+            "column": 7,
+            "row": 1,
+            "height": 4,
+            "width": 4
+          },
+          "title": "Number of Scheduled Builds",
+          "rawConfiguration": {
+            "legend": {
+              "enabled": true
+            },
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "SELECT count (sfpowerscripts.build.scheduled) AS 'Scheduled Builds' FROM Metric TIMESERIES"
+              }
+            ]
+          },
+          "linkedEntityGuids": null
+        },
+        {
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "layout": {
+            "column": 1,
+            "row": 3,
+            "height": 2,
+            "width": 3
+          },
+          "title": "Avg. Time Taken to Build Packages (QuickBuild/All)",
+          "rawConfiguration": {
+            "dataFormatters": [],
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "SELECT average(sfpowerscripts.build.duration)/1000/60 AS 'Mins' FROM Metric  WHERE stage='quickbuild'AND is_diffcheck_enabled='false' SINCE this quarter"
+              }
+            ],
+            "thresholds": []
+          },
+          "linkedEntityGuids": null
+        },
+        {
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "layout": {
+            "column": 4,
+            "row": 3,
+            "height": 2,
+            "width": 3
+          },
+          "title": "Avg. Time Taken to Build Packages (Build/All)",
+          "rawConfiguration": {
+            "dataFormatters": [],
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "SELECT average(sfpowerscripts.build.duration)/1000/60 AS 'Mins' FROM Metric  WHERE stage='build' AND is_diffcheck_enabled='false' SINCE this quarter"
+              }
+            ],
+            "thresholds": []
+          },
+          "linkedEntityGuids": null
+        },
+        {
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "layout": {
+            "column": 1,
+            "row": 5,
+            "height": 2,
+            "width": 3
+          },
+          "title": "Number of Valiated Packages Scheduled",
+          "rawConfiguration": {
+            "dataFormatters": [],
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "SELECT count(sfpowerscripts.build.scheduled.packages) AS 'Packages Scheduled' FROM  Metric WHERE is_dependency_validated ='true' SINCE this quarter"
+              }
+            ],
+            "thresholds": []
+          },
+          "linkedEntityGuids": null
+        },
+        {
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "layout": {
+            "column": 4,
+            "row": 5,
+            "height": 2,
+            "width": 3
+          },
+          "title": "Number of  Validated Packages Succeeded",
+          "rawConfiguration": {
+            "dataFormatters": [],
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "SELECT count(sfpowerscripts.build.succeeded.packages) AS 'Packages Succeeded' FROM  Metric WHERE is_dependency_validated ='true' SINCE this quarter"
+              }
+            ],
+            "thresholds": []
+          },
+          "linkedEntityGuids": null
+        },
+        {
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "layout": {
+            "column": 7,
+            "row": 5,
+            "height": 2,
+            "width": 4
+          },
+          "title": "Percentage of Successful Builds",
+          "rawConfiguration": {
+            "dataFormatters": [],
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "SELECT 100-(count(sfpowerscripts.build.succeeded.failed)/(count(sfpowerscripts.build.succeeded.packages)+count(sfpowerscripts.build.failed.packages))) AS '%' FROM  Metric WHERE is_dependency_validated ='true' SINCE this quarter"
+              }
+            ],
+            "thresholds": []
+          },
+          "linkedEntityGuids": null
+        }
+      ]
+    },
+    {
+      "name": "Package Health Dashboard",
+      "description": null,
+      "widgets": [
+        {
+          "visualization": {
+            "id": "viz.table"
+          },
+          "layout": {
+            "column": 1,
+            "row": 1,
+            "height": 3,
+            "width": 2
+          },
+          "title": "Time Taken to Install Unlocked Packages",
+          "rawConfiguration": {
+            "dataFormatters": [],
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "SELECT  AVERAGE(sfpowerscripts.package.installation.elapsed_time)/1000/60 AS 'Avg.Mins' , MAX(sfpowerscripts.package.installation.elapsed_time)/1000/60 As 'Max Mins' FROM Metric FACET package WHERE type='unlocked'SINCE this quarter"
+              }
+            ]
+          },
+          "linkedEntityGuids": [
+            "MzIzODQ2OHxWSVp8REFTSEJPQVJEfDIyOTM0NDM"
+          ]
+        },
+        {
+          "visualization": {
+            "id": "viz.table"
+          },
+          "layout": {
+            "column": 3,
+            "row": 1,
+            "height": 3,
+            "width": 2
+          },
+          "title": "Time Taken to Install Source Packages",
+          "rawConfiguration": {
+            "dataFormatters": [],
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "SELECT  AVERAGE(sfpowerscripts.package.installation.elapsed_time)/1000/60 AS 'Avg.Mins' , MAX(sfpowerscripts.package.installation.elapsed_time)/1000/60 As 'Max Mins' FROM Metric FACET package WHERE type='source' SINCE this quarter"
+              }
+            ]
+          },
+          "linkedEntityGuids": [
+            "MzIzODQ2OHxWSVp8REFTSEJPQVJEfDIyOTM0NDM"
+          ]
+        },
+        {
+          "visualization": {
+            "id": "viz.table"
+          },
+          "layout": {
+            "column": 5,
+            "row": 1,
+            "height": 3,
+            "width": 2
+          },
+          "title": "Time Taken to Install Data Packages",
+          "rawConfiguration": {
+            "dataFormatters": [],
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "SELECT  AVERAGE(sfpowerscripts.package.installation.elapsed_time)/1000/60 AS 'Avg.Mins' , MAX(sfpowerscripts.package.installation.elapsed_time)/1000/60 As 'Max Mins' FROM Metric FACET package WHERE type='data' SINCE this quarter"
+              }
+            ]
+          },
+          "linkedEntityGuids": [
+            "MzIzODQ2OHxWSVp8REFTSEJPQVJEfDIyOTM0NDM"
+          ]
+        },
+        {
+          "visualization": {
+            "id": "viz.bar"
+          },
+          "layout": {
+            "column": 7,
+            "row": 1,
+            "height": 3,
+            "width": 3
+          },
+          "title": "Top 10 Failing Packages during installation",
+          "rawConfiguration": {
+            "dataFormatters": [],
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "FROM Metric SELECT count(sfpowerscripts.package.installation.failure) FACET package LIMIT 10 SINCE this quarter"
+              }
+            ]
+          },
+          "linkedEntityGuids": null
+        },
+        {
+          "visualization": {
+            "id": "viz.table"
+          },
+          "layout": {
+            "column": 10,
+            "row": 1,
+            "height": 3,
+            "width": 3
+          },
+          "title": "Top Failing Packages (Apex Tests)",
+          "rawConfiguration": {
+            "dataFormatters": [],
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "FROM Metric SELECT sum(sfpowerscripts.apextests.triggered) FACET package WHERE test_result='false' LIMIT 10 SINCE this quarter"
+              }
+            ]
+          },
+          "linkedEntityGuids": null
+        },
+        {
+          "visualization": {
+            "id": "viz.table"
+          },
+          "layout": {
+            "column": 1,
+            "row": 4,
+            "height": 3,
+            "width": 4
+          },
+          "title": "Time Taken to  Create Unlocked Packages",
+          "rawConfiguration": {
+            "dataFormatters": [],
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "SELECT  AVERAGE(sfpowerscripts.package.elapsed.time)/1000/60 AS 'Avg.Mins' , MAX(sfpowerscripts.package.elapsed.time)/1000/60 As 'Max Mins' FROM Metric FACET package WHERE type='unlocked' AND is_dependency_validated='true'SINCE this quarter"
+              }
+            ]
+          },
+          "linkedEntityGuids": [
+            "MzIzODQ2OHxWSVp8REFTSEJPQVJEfDIyOTM0NDM"
+          ]
+        },
+        {
+          "visualization": {
+            "id": "viz.table"
+          },
+          "layout": {
+            "column": 5,
+            "row": 4,
+            "height": 3,
+            "width": 4
+          },
+          "title": "Top Failing Packages (Build)",
+          "rawConfiguration": {
+            "dataFormatters": [],
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "FROM Metric SELECT COUNT(sfpowerscripts.build.failed.packages) FACET package  LIMIT 10 SINCE this quarter"
+              }
+            ]
+          },
+          "linkedEntityGuids": null
+        },
+        {
+          "visualization": {
+            "id": "viz.bar"
+          },
+          "layout": {
+            "column": 9,
+            "row": 4,
+            "height": 3,
+            "width": 4
+          },
+          "title": "Most Created Packages",
+          "rawConfiguration": {
+            "dataFormatters": [],
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "FROM Metric SELECT count(sfpowerscripts.build.scheduled.packages) FACET package LIMIT 10 SINCE this quarter"
+              }
+            ]
+          },
+          "linkedEntityGuids": null
+        }
+      ]
+    },
+    {
+      "name": "Release Dashboard",
+      "description": null,
+      "widgets": [
+        {
+          "visualization": {
+            "id": "viz.table"
+          },
+          "layout": {
+            "column": 1,
+            "row": 1,
+            "height": 7,
+            "width": 12
+          },
+          "title": "Deployment Health",
+          "rawConfiguration": {
+            "dataFormatters": [],
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "SELECT count(`sfpowerscripts.deploy.scheduled`)  AS 'Deployment Scheduled', count(`sfpowerscripts.deploy.succeeded`) AS 'Deployment Succeeded', count(`sfpowerscripts.deploy.succeeded`) AS 'Deployment Failed',count('sfpowerscripts.deploy.scheduled.packages') AS 'Total Packages Scheduled for Deployment',count('sfpowerscripts.deploy.succeeded.packages') AS 'Total Packages Succeeded for Deployment', ((count(`sfpowerscripts.deploy.succeeded`)-count(`sfpowerscripts.deploy.failed`))/count(`sfpowerscripts.deploy.succeeded`))*100 AS 'Success Rate' FROM Metric FACET targetOrg SINCE this quarter"
+              }
+            ]
+          },
+          "linkedEntityGuids": null
+        }
+      ]
+    },
+    {
+      "name": "Scratch Org Pool Dashboard",
+      "description": null,
+      "widgets": [
+        {
+          "visualization": {
+            "id": "viz.bar"
+          },
+          "layout": {
+            "column": 1,
+            "row": 1,
+            "height": 3,
+            "width": 3
+          },
+          "title": "Scratch Orgs Available in Pool",
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "SELECT latest(`sfpowerscripts.pool.available`) FROM Metric FACET poolName "
+              }
+            ]
+          },
+          "linkedEntityGuids": null
+        },
+        {
+          "visualization": {
+            "id": "viz.bar"
+          },
+          "layout": {
+            "column": 4,
+            "row": 1,
+            "height": 3,
+            "width": 3
+          },
+          "title": "Scratch Orgs In Use ",
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "SELECT latest(`sfpowerscripts.pool.inuse`) FROM Metric FACET poolName "
+              }
+            ]
+          },
+          "linkedEntityGuids": null
+        },
+        {
+          "visualization": {
+            "id": "viz.bar"
+          },
+          "layout": {
+            "column": 7,
+            "row": 1,
+            "height": 3,
+            "width": 3
+          },
+          "title": "Scratch Orgs Being Provisioned",
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "SELECT latest(`sfpowerscripts.pool.provisioning`) FROM Metric FACET poolName "
+              }
+            ]
+          },
+          "linkedEntityGuids": null
+        },
+        {
+          "visualization": {
+            "id": "viz.bar"
+          },
+          "layout": {
+            "column": 10,
+            "row": 1,
+            "height": 3,
+            "width": 3
+          },
+          "title": "Time Spent on Creating Scratch Orgs",
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "SELECT latest(`sfpowerscripts.prepare.duration`)/1000/60/60 AS 'Hours' FROM Metric FACET poolName SINCE this quarter"
+              }
+            ]
+          },
+          "linkedEntityGuids": null
+        },
+        {
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "layout": {
+            "column": 1,
+            "row": 4,
+            "height": 3,
+            "width": 4
+          },
+          "title": "Scratch Org Footprint",
+          "rawConfiguration": {
+            "dataFormatters": [],
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "SELECT latest(`sfpowerscripts.pool.footprint`) AS `Scratch Org Footprint` FROM Metric "
+              }
+            ],
+            "thresholds": []
+          },
+          "linkedEntityGuids": null
+        },
+        {
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "layout": {
+            "column": 5,
+            "row": 4,
+            "height": 3,
+            "width": 4
+          },
+          "title": "Remaining Active Count of Scratch Orgs",
+          "rawConfiguration": {
+            "dataFormatters": [],
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "SELECT latest(`sfpowerscripts.scratchorgs.active.remaining`) AS `Remaining Active ScratchOrgs` FROM Metric "
+              }
+            ],
+            "thresholds": []
+          },
+          "linkedEntityGuids": null
+        },
+        {
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "layout": {
+            "column": 9,
+            "row": 4,
+            "height": 3,
+            "width": 4
+          },
+          "title": "Remaining Daily Count of Scratch Orgs",
+          "rawConfiguration": {
+            "dataFormatters": [],
+            "nrqlQueries": [
+              {
+                "accountId": <your-account-id>,
+                "query": "SELECT latest(`sfpowerscripts.scratchorgs.daily.remaining`) AS `Remaining Daily ScratchOrgs` FROM Metric "
+              }
+            ],
+            "thresholds": []
+          },
+          "linkedEntityGuids": null
+        }
+      ]
+    }
+  ]
+}

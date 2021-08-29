@@ -1,0 +1,216 @@
+# DX@Scale CI/CD Template for Azure Pipelines
+#-----------------------------------------------------------------------------------------------------------
+# Maintained by @ramesh-karanji(Ramesh Karanji)
+# Follows reference pipeline available at docs.dxatscale.io
+# 
+#------------------------------------------------------------------------------------------------------------
+# To know more about dxatscale, visit https://docs.dxatscale.io
+# To know more on sfpowerscripts, visit- https://sfpowerscripts.dxatscale.io/
+# To know more on sfpowerkit, visit- https://github.com/Accenture/sfpowerkit
+# 
+# This pipeline is used to release a set of packages into respective environments
+#
+#
+# --- To report metrics about the pipeline to datadog or newrelic, set these variables in CICD group
+#
+#  #SFPOWERSCRIPTS_NEWRELIC: 'true'
+#  #SFPOWERSCRIPTS_NEWRELIC_API_KEY: '<NEWRELIC_INSIGHT_INSERT_KEYS>'
+# 
+#  or if you are using Datadog
+#  #SFPOWERSCRIPTS_DATADOG: 'true'
+#  #SFPOWERSCRIPTS_DATADOG_HOST: '<DATADOG-HOST>'
+#  #SFPOWERSCRIPTS_DATADOG_API_KEY: '<DATADOG-API-KEY>'
+#
+# or if you are using a Hosted StatsD server
+#  
+#  # SFPOWERSCRIPTS_STATSD: 'true'
+#  # SFPOWERSCRIPTS_STATSD_HOST: '<STATSD_HOST_IP>'
+#
+# --------------------------------------------------------------------------------------------------------
+
+name: 'CD Pipeline - User Triggered'
+
+trigger: none
+pr: none
+
+# parameters and their data types used in pipeline
+parameters:
+  - name: releasedefintionPath
+    displayName: 'Path to release definition file'
+    type: string
+    default: 'releasedefinitions/release-1.0.yml'
+
+#Custom Variables
+variables:
+  - group: CICD
+
+  
+stages:
+# Release Package to SIT 
+    - stage: ST
+      lockBehavior: sequential
+      displayName: ST
+      condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+      jobs:
+          - deployment: release_st
+            environment: st
+            displayName: 'release to st'                      
+            pool:
+                vmImage: 'ubuntu-latest'
+            container: dxatscale/sfpowerscripts:latest
+            strategy:
+             runOnce:
+               deploy:
+                steps:
+                 - checkout: self
+                   persistCredentials: true
+
+
+                 - task: DownloadSecureFile@1
+                   name: npmrc
+                   inputs:
+                      secureFile: .npmrc
+
+                 - task: npmAuthenticate@0
+                   inputs:
+                      workingFile: $(npmrc.secureFilePath)
+
+
+                 - script: |
+                        echo $(ST_SFDX_AUTH_URL) > ./authfile
+                        sfdx auth:sfdxurl:store -f authfile -a st
+                   displayName: 'Authenticate to ST'
+
+                 - task: CmdLine@2
+                   displayName: 'Deploy packages to st'
+                   inputs:
+                      script: 'sfdx sfpowerscripts:orchestrator:release -u st -p ${{ parameters.releasedefintionPath }} --npm --scope  $(scope) --npmrcpath $(npmrc.secureFilePath) --generatechangelog --branchname $(Build.SourceBranchName)  -g "##[group],##[endgroup]"'
+                   env:
+                     SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+
+# Release Package to SIT    
+    - stage: SIT
+      lockBehavior: sequential
+      displayName: SIT
+      dependsOn: ST
+      condition: and(eq(variables['Build.SourceBranch'], 'refs/heads/main'),succeeded())
+      jobs:
+          - deployment: release_sit
+            environment: sit
+            displayName: 'release to sit'                       
+            pool:
+                vmImage: 'ubuntu-latest'
+            container: dxatscale/sfpowerscripts:latest
+            strategy:
+             runOnce:
+               deploy:
+                steps:
+                 - checkout: self
+                   persistCredentials: true
+
+                 - task: DownloadSecureFile@1
+                   name: npmrc
+                   inputs:
+                      secureFile: .npmrc
+
+                 - task: npmAuthenticate@0
+                   inputs:
+                      workingFile: $(npmrc.secureFilePath)
+
+                 - script: |
+                        echo $(SIT_SFDX_AUTH_URL) > ./authfile
+                        sfdx auth:sfdxurl:store -f authfile -a sit
+                   displayName: 'Authenticate to SIT'
+
+
+                 - task: CmdLine@2
+                   displayName: 'Deploy packages to SIT'
+                   inputs:
+                      script: 'sfdx sfpowerscripts:orchestrator:release -u sit -p ${{ parameters.releasedefintionPath }} --npm --scope  $(scope) --npmrcpath $(npmrc.secureFilePath) --generatechangelog  --branchname $(Build.SourceBranchName)  -g "##[group],##[endgroup]"'
+                   env:
+                     SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+
+# Release Package to UAT    
+    - stage: UAT
+      lockBehavior: sequential
+      displayName: UAT
+      dependsOn: []
+      condition: eq(variables['Build.SourceBranch'], 'refs/heads/release/')
+      jobs:
+          - deployment: release_uat
+            environment: uat
+            displayName: 'release to prod' 
+            pool:
+                  vmImage: 'ubuntu-latest'
+            container: dxatscale/sfpowerscripts:latest
+            strategy:
+             runOnce:
+              deploy:
+                steps:
+                - checkout: self
+                  persistCredentials: true
+
+                - task: DownloadSecureFile@1
+                  name: npmrc
+                  inputs:
+                      secureFile: .npmrc
+
+                - task: npmAuthenticate@0
+                  inputs:
+                      workingFile: $(npmrc.secureFilePath)
+
+
+                - script: |
+                        echo $(UAT_SFDX_AUTH_URL) > ./authfile
+                        sfdx auth:sfdxurl:store -f authfile -a uat
+                  displayName: 'Authenticate to UAT'
+
+                - task: CmdLine@2
+                  displayName: 'Deploy packages to UAT'
+                  inputs:
+                      script: 'sfdx sfpowerscripts:orchestrator:release -u uat -p ${{ parameters.releasedefintionPath }} --npm --scope $(scope) --npmrcpath $(npmrc.secureFilePath) --generatechangelog  --branchname $(Build.SourceBranchName)  -g "##[group],##[endgroup]"'
+                  env:
+                     SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+
+
+# Release Package to PROD    
+    - stage: PROD
+      lockBehavior: sequential
+      displayName: PROD
+      dependsOn: UAT
+      condition: and(eq(variables['Build.SourceBranch'], 'refs/heads/release/'),succeeded())
+      jobs:
+          - deployment: release_prod
+            environment: prod
+            displayName: 'release to prod' 
+            pool:
+                  vmImage: 'ubuntu-latest'
+            container: dxatscale/sfpowerscripts:latest
+            strategy:
+             runOnce:
+              deploy:
+                steps:
+                - checkout: self
+                  persistCredentials: true
+
+                - task: DownloadSecureFile@1
+                  name: npmrc
+                  inputs:
+                      secureFile: .npmrc
+
+                - task: npmAuthenticate@0
+                  inputs:
+                      workingFile: $(npmrc.secureFilePath)
+
+
+                - script: |
+                        echo $(DEVHUB_SFDX_AUTH_URL) > ./authfile
+                        sfdx auth:sfdxurl:store -f authfile -a prod
+                  displayName: 'Authenticate to Prod'
+
+                - task: CmdLine@2
+                  displayName: 'Deploy packages to Prod'
+                  inputs:
+                      script: 'sfdx sfpowerscripts:orchestrator:release -u prod -p ${{ parameters.releasedefintionPath }} --npm --scope $(scope) --npmrcpath $(npmrc.secureFilePath) --generatechangelog  --branchname $(Build.SourceBranchName)  -g "##[group],##[endgroup]"'
+                  env:
+                     SYSTEM_ACCESSTOKEN: $(System.AccessToken)
