@@ -1,36 +1,85 @@
+# ██████████   █████ █████  █████████   █████████                     ████
+#░░███░░░░███ ░░███ ░░███  ███░░░░░░   ███░░░░░███                   ░░███
+#  ███   ░░███ ░░███ ███  ░███ ██████ ░███    ░░░   ██████   ██████   ░███   ██████
+# ░███    ░███  ░░█████   ░███░███░███░░█████████  ███░░███ ░░░░░███  ░███  ███░░███
+# ░███    ░███   ███░███  ░███░███░███ ░░░░░░░░███░███ ░░░   ███████  ░███ ░███████
+# ░███    ███   ███ ░░███ ░███░░░ ░███ ███    ░███░███  ███ ███░░███  ░███ ░███░░░
+# ██████████   █████ █████░░█████████ ░░█████████ ░░██████ ░░████████ █████░░██████
+# ░░░░░░░░░░   ░░░░░ ░░░░░  ░░░░░░░░░   ░░░░░░░░░   ░░░░░░   ░░░░░░░░ ░░░░░  ░░░░░░
+    
 # DX@Scale CI/CD Template for Gitlab
 #-----------------------------------------------------------------------------------------------------------
-# Maintained by @ramesh-karanji(Ramesh Karanji), @henry88lay(Henry Lay) for DX@Scale
+# Maintained by @ramesh-karanji(Ramesh Karanji), @henry88lay(Henry Lay), @vuha-acn(Vu Ha) for DX@Scale
 # Follows reference pipeline available at docs.dxatscale.io
+#
+# This specific template is located at:
+# https://github.com/dxatscale/dxatscale-template
+#
+# References - Development guide for GitLab CI/CD templates
+# To contribute improvements to CI/CD templates, please follow the Development guide at:
+# https://docs.gitlab.com/ee/development/cicd/templates.html
+# See https://docs.gitlab.com/ee/ci/yaml/README.html for all available options    
 # 
 #------------------------------------------------------------------------------------------------------------
-# To know more about dxatscale, visit https://docs.dxatscale.io
-# To know more on sfpowerscripts, visit- https://sfpowerscripts.dxatscale.io/
-# To know more on sfpowerkit, visit- https://github.com/Accenture/sfpowerkit
+# To know more on dxatscale, visit https://docs.dxatscale.io
+# To know more on sfpowerscripts, visit https://sfpowerscripts.dxatscale.io/
+# To know more on sfpowerkit, visit https://github.com/Accenture/sfpowerkit
+# To know more on Dockerfile, visit  https://github.com/dxatscale/docker-sfpowerscripts/blob/main/Dockerfile
 
-#The image contains sfpowerscripts and the dependencies it needs to run, refer to https://hub.docker.com/r/dxatscale/sfpowerscripts
+# Configure the following CI/CD environment variables and/or file prior to running the pipleine
+#------------------------------------------------------------------------------------------------------------
+# Dev Hub Authentication Details (2)
+#------------------------------------------------------------------------------------------------------------
+# DEVHUB_ALIAS (variable)
+# DEVHUB_SFDX_AUTH_URL (file, masked)
+#------------------------------------------------------------------------------------------------------------
+# Sandbox Environments Authentication Details (6+)
+#------------------------------------------------------------------------------------------------------------
+# SHAREDDEV_ALIAS (variable)
+# SHAREDDEV_SFDX_AUTH_URL (file, masked)
+# ST_ALIAS (variable)
+# ST_SFDX_AUTH_URL (file, masked)
+# UAT_ALIAS (variable)
+# UAT_SFDX_AUTH_URL (file, masked)
+#------------------------------------------------------------------------------------------------------------
+# NPM Scope - Scopes are a way of grouping related packages together for your artifacts (1)
+#------------------------------------------------------------------------------------------------------------
+# NPM_SCOPE (variable)
+#------------------------------------------------------------------------------------------------------------
+# CI/CD Project Access Token (1)
+#------------------------------------------------------------------------------------------------------------
+# PROJECT_ACCESS_TOKEN (variable, masked)
+#------------------------------------------------------------------------------------------------------------
+# Metrics Dashboard Connection Details for Data Dog or New Relic (2)
+#------------------------------------------------------------------------------------------------------------
+# SFPOWERSCRIPTS_DATADOG_HOST (variable) (optional)
+# SFPOWERSCRIPTS_DATADOG_API_KEY (variable, masked) (optional)
+# SFPOWERSCRIPTS_NEWRELIC (variable) (optional)
+# SFPOWERSCRIPTS_NEWRELIC_API_KEY (variable, masked) (optional)
+
 image: dxatscale/sfpowerscripts
 
-#Custom variables to use across all stages
+# BUILD_BRANCH defaults to "main" branch for scaled trunk based branching development model
+# TARGETTASKNAME used for scheduling control logic for pipeline execution for scratch org pool creation and cleaning
 variables:
    BUILD_BRANCH: main
-   #Set Org name 
-   ## Set one of the below for pushing metrics into NewRelic or Datadog
-   #SFPOWERSCRIPTS_NEWRELIC: 'true'
-   #SFPOWERSCRIPTS_NEWRELIC_API_KEY: '${{ secrets.NEWRELIC_INSIGHT_INSERT_KEYS }}'
-   #SFPOWERSCRIPTS_DATADOG: 'true'
-   #SFPOWERSCRIPTS_DATADOG_HOST: '${{ secrets.DATADOG_HOST }}'
-   #SFPOWERSCRIPTS_DATADOG_API_KEY: '${{ secrets.DATADOG_API_KEY }}'
+   SCRATCH_ORG_USERNAME:
+     value: ""
+     description: "Username of the scratchOrg to be deleted, not aliases, e.g. test-xasdasd@example.com"
+   TARGETTASKNAME:
+    value: ""
+    description: "The task name to run on demand, please pick ONE from this list: schedule-prepare-ci-pool, schedule-prepare-dev-pool, schedule-clean-pool, schedule-report-so-pool, manual-delete-fetched-so"   
 
-# Authenticate DevHub using SFDX Auth URL and Generate NPM Configuration File for Package Registry 
+# Generate NPM Configuration File for Package Registry Publishing
 before_script:
-    - echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./authfile
-    - sfdx auth:sfdxurl:store -f ./authfile -a "$DEVHUB_ALIAS"
-    - echo @${CI_PROJECT_NAME}:registry=https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/packages/npm/ >> .npmrc
-    - echo //${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN} >> .npmrc
+  - sfdx auth:sfdxurl:store -f "$DEVHUB_SFDX_AUTH_URL" -a "$DEVHUB_ALIAS"
+  - echo "${NPM_SCOPE}:registry=https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/packages/npm/" >> .npmrc
+  - echo "//${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}" >> .npmrc 
+# Below setting is required to push git tags and changelog to the repo      
+  - git remote set-url --push origin https://gitlab-ci-token:${PROJECT_ACCESS_TOKEN}@$CI_SERVER_HOST/$CI_PROJECT_PATH.git
 
-# CICD Pipelines Stages
 stages:
+   - analyze
    - validate
    - quickbuild
    - deploy
@@ -39,73 +88,89 @@ stages:
    - prepare-ci-pool
    - prepare-dev-pool
    - clean-pool
+   - report-so-pool
+   - delete-fetched-so
 
-# This rule is designed to not run a stage based on a "Scheduled" pipeline execution.
-.ignore-schedule:
+# This rule is designed to run only during merges and commits to the main or release branches in sequence of each stage or job completing successfully
+.run-only-on-merge:
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: never   
+      when: never         
+    - if: '$TARGETTASKNAME == "manual-delete-fetched-so"'  
+      when: never        
     - if: '($CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH=~ /^release*$/)' 
-      when: always               
+      when: on_success               
     - when: never
 
-# This rule is designed for release stage(s).
-.release-rules:
+# This rule is designed for manual triggers of the pipelines only
+.run-on-manual:
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
       when: never     
+    - if: '$TARGETTASKNAME == "manual-delete-fetched-so"'  
+      when: never     
     - if: '($CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH=~ /^release*$/)'  
       when: manual  
 
-# This rule is designed for Validation stage(s).
-.validates-rules:
+# This rule is designed for merge requests to trigger off the Validation stages
+.run-on-merge-request:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: on_success      
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never      
+
+# This rule is designed for Analyze stage.
+.analyze-rules:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
       when: always
     - if: $CI_PIPELINE_SOURCE == "schedule"
-      when: never         
+      when: never   
 
-## 1. This pipeline is used to validate an incoming change using a dev environment fetched from the CI pool 
+## 1. This pipeline is used to validate an incoming change using a dev environment fetched from the CI pool    
 
-# Validates PMD (source code analyzer) 
-validate-pmd:  
-  stage: validate
-  extends: .validates-rules  
+# Analyze PMD (source code analyzer) 
+analyze-pmd:  
+  stage: analyze
+  extends: .analyze-rules  
   script:
     - echo "PMD Validation"
-    - sfdx sfpowerkit:source:pmd -f csv --reportfile pmd-output.csv --no-failonviolation   
+    # Duplicate the below command for each package in the repository
+    - sfdx sfpowerscripts:analyze:pmd --format csv --outputpath pmd-output-core-crm.csv --sourcedir src/core-crm
   artifacts:
     paths:
-      - pmd-output.csv
-    expire_in: 1 week      
+      # Update the name of the csv output to match above --outputpath
+      - pmd-output-core-crm.csv
+    expire_in: 1 week          
 
-#Validates a package directory to check whether it only contains valid metadata as per metadata coverage  
+# Validates a package directory to check whether it only contains valid metadata as per metadata coverage  
 validate-package:
   stage: validate
-  extends: .validates-rules
+  extends: .run-on-merge-request
   script:
     - echo "Validate package metadata"
-    - sfdx sfpowerkit:package:valid -n avms
+    # Duplicate the below command for each package in the repository
+    - sfdx sfpowerkit:package:valid -n core-crm       
 
-              
-#Validate the incoming change against a prepared scratch org fetched from the provided CI pools   
+# Validate the incoming change against a prepared scratch org fetched from the provided CI pools   
 validate-source:
   stage: validate
-  extends: .validates-rules  
+  extends: .run-on-merge-request
   script:
     - echo "Validate source"
+    # Match the pool CI pool tag defined in your project-ci-pool-def.json definition file
     - sfdx sfpowerscripts:orchestrator:validate -p CI1 -v "$DEVHUB_ALIAS" -x
-  
 
-## 2. This pipeline quickbuilds, deploy to DEV, builds and publishes packages to artifact repository
+## 2. This pipeline quickbuilds, deploy to QA, builds and publishes packages to artifact repository
 
-#Build packages (unlocked/source/data) in a repo in parallel, without validating depenencies or coverage in the case of unlocked packages 
+# Build packages (unlocked/source/data) in a repo in parallel, without validating depenencies or coverage in the case of unlocked packages 
 quickbuild: 
-  extends: .ignore-schedule
+  extends: .run-only-on-merge
   stage: quickbuild 
   script:
     - echo "Quick Build the packages"
@@ -114,123 +179,78 @@ quickbuild:
     paths:
       - artifacts/
 
-#Deploy packages from the provided aritfact directory, to a given org
+# Deploy packages from the provided artifact directory, to the shared development sandbox
 deploy:
-  extends: .ignore-schedule
+  extends: .run-only-on-merge
   stage: deploy
-  needs: [quickbuild]  
+  needs: ["quickbuild"]  
   script:
-    - echo "${{ secrets.DEV_SFDX_AUTH_URL }}" > ./dev_authfile
-    - sfdx auth:sfdxurl:store -f ./dev_authfile -a dev
-    - sfdx sfpowerkit:package:dependencies:install -u dev -v "$DEVHUB_ALIAS"
-    - sfdx sfpowerscripts:orchestrator:deploy -u dev
+    - sfdx auth:sfdxurl:store -f "$SHAREDDEV_SFDX_AUTH_URL" -a "$SHAREDDEV_ALIAS"    
+    - sfdx sfpowerkit:package:dependencies:install -u "$SHAREDDEV_ALIAS" -v "$DEVHUB_ALIAS"
+    - sfdx sfpowerscripts:orchestrator:deploy -u "$SHAREDDEV_ALIAS"
   dependencies:
     - quickbuild
   environment:
     name: deploy-env
-  resource_group: deploy
+  resource_group: deploy    
 
-#Build all packages (unlocked/source/data) in a repo in parallel, respecting the dependency of each packages and generate artifacts and Publish packages to npm artifact registry
+# Build all packages (unlocked/source/data) in a repo in parallel, respecting the dependency of each packages and generate artifacts and publish packages to npm artifact registry and push tags to git
 build:
-  extends: .ignore-schedule
+  extends: .run-only-on-merge
   stage: build
-  needs: [quickbuild]  
+  needs: ["deploy"]  
   script:
     - echo "Build Production Ready Packages and Publish"
-    - sfdx sfpowerscripts:orchestrator:build -v "$DEVHUB_ALIAS" --branch "$BUILD_BRANCH" --buildnumber $CI_PIPELINE_ID
-    - sfdx sfpowerscripts:orchestrator:publish -v "$DEVHUB_ALIAS" --npm --npmtag main --npmrcpath .npmrc --scope "$CI_PROJECT_NAME"
-  dependencies:
-       - deploy
+    - sfdx sfpowerscripts:orchestrator:build -v "$DEVHUB_ALIAS" --branch "$BUILD_BRANCH" --buildnumber $CI_PIPELINE_ID --diffcheck
+    - sfdx sfpowerscripts:orchestrator:publish -v "$DEVHUB_ALIAS" --npm --npmtag main --npmrcpath .npmrc --scope "$NPM_SCOPE" --gittag --pushgittag
   environment:
     name: build-env
   resource_group: build
 
-## 3. This pipeline is used to release a set of packages into respective environments (DEV to PROD)
-#Initiate a release to an org, according to the release configuration defined in a release-definition YAML file
+## 3. This pipeline is used to release a set of packages into respective environments (DEV to PROD). Initial ST environment is provided as a reference.
+# Initiate a release to an org, according to the release configuration defined in a release-definition YAML file
 
 # This Stage will release package to ST Environment
 ST:
   stage: release
-  extends: .release-rules
+  extends: .run-on-manual
+  needs: ["build"] 
   script:
-    - echo "${{ secrets.ST_SFDX_AUTH_URL }}" > ./st_authfile
-    - sfdx auth:sfdxurl:store -f ./st_authfile -a st
-    - sfdx sfpowerscripts:orchestrator:release -u st -p releasedefinitions/releaseDefinition.yml --npm --npmrcpath .npmrc --scope "$CI_PROJECT_NAME"  --generatechangelog --branchname "$CI_COMMIT_BRANCH" 
+    - sfdx auth:sfdxurl:store -f "$ST_SFDX_AUTH_URL" -a "$ST_ALIAS"
+    - sfdx sfpowerscripts:orchestrator:release -u "$ST_ALIAS" -p release-definitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog -b $CI_COMMIT_BRANCH
   environment:
     name: ST
   resource_group: ST
 
+## 4. Scratch Org Pool creation and clean pipelines for CI and DEV's
 
-# This Stage will release package to SIT Environment
-SIT:
-  stage: release
-  extends: .release-rules
-  needs: [ST]  
-  script:
-    - echo "${{ secrets.SIT_SFDX_AUTH_URL }}" > ./sit_authfile
-    - sfdx auth:sfdxurl:store -f ./sit_authfile -a sit
-    - sfdx sfpowerscripts:orchestrator:release -u sit -p releasedefinitions/releaseDefinition.yml --npm --npmrcpath .npmrc --scope "$CI_PROJECT_NAME"  --generatechangelog --branchname "$CI_COMMIT_BRANCH" 
-  environment:
-    name: SIT
-  resource_group: SIT
-
-# This Stage will release package to SIT Environment
-UAT:
-  stage: release
-  extends: .release-rules
-  needs: []  
-  script:
-    - echo "${{ secrets.UAT_SFDX_AUTH_URL }}" > ./uat_authfile
-    - sfdx auth:sfdxurl:store -f ./sit_authfile -a uat
-    - sfdx sfpowerscripts:orchestrator:release -u uat -p releasedefinitions/releaseDefinition.yml --npm --npmrcpath .npmrc --scope "$CI_PROJECT_NAME"  --generatechangelog --branchname "$CI_COMMIT_BRANCH" 
-  environment:
-    name: UAT
-  resource_group: UAT
-
-
- # This Stage will release package to ST Environment
-PROD:
-  stage: release
-  extends: .release-rules
-  needs: [UAT]  
-  script:
-    - echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./prod_authfile
-    - sfdx auth:sfdxurl:store -f ./prod_authfile -a prod
-    - sfdx sfpowerscripts:orchestrator:release -u prod -p releasedefinitions/releaseDefinition.yml --npm --npmrcpath .npmrc --scope "$CI_PROJECT_NAME" --generatechangelog --branchname "$CI_COMMIT_BRANCH" 
-  environment:
-    name: PROD
-  resource_group: PROD
-
- 
-##4. Scratch Org Pool creation and clean pipelines for CI and DEV's
-
-# This pipeline creates the CI pools
+# This job creates the CI pools
 prepare-ci-pool:
   stage: prepare-ci-pool
   rules:
     - if: '$TARGETTASKNAME == "schedule-prepare-ci-pool"'
   script:
-    - sfdx sfpowerscripts:orchestrator:prepare -v "$DEVHUB_ALIAS" -f config/cipool.json
+    - sfdx sfpowerscripts:orchestrator:prepare -v "$DEVHUB_ALIAS" -f config/project-ci-pool-def.json
   artifacts:
     paths:
       - .sfpowerscripts/prepare_logs/
-    expire_in: 1 week
+    expire_in: 1 week        
 
-# This pipeline creates the DEV pools
+# This job creates the DEV pools
 prepare-dev-pool:
   stage: prepare-dev-pool
   rules:
     - if: '$TARGETTASKNAME == "schedule-prepare-dev-pool"'
   script:
-    - sfdx sfpowerscripts:orchestrator:prepare -v "$DEVHUB_ALIAS" -f config/devpool.json --npmrcpath=.npmrc
+    - sfdx sfpowerscripts:orchestrator:prepare -v "$DEVHUB_ALIAS" -f config/project-dev-pool-def.json --npmrcpath=.npmrc    
   artifacts:
     paths:
       - .sfpowerscripts/prepare_logs/
     expire_in: 1 week
   
-# This pipeline deletes all the scratch orgs from the pool on a set time, so that pools can be recreated with new artifacts
+# The following pipeline deletes all the scratch orgs from the pool at a set time, so that pools can be recreated with the latest artifacts
 
-# This pipeline cleans the DEV pools
+# This job cleans the DEV pools
 clean-dev-pool:
   stage: clean-pool
   rules:
@@ -238,10 +258,28 @@ clean-dev-pool:
   script:
     - sfdx sfpowerscripts:pool:delete -t DEV1 -v "$DEVHUB_ALIAS"
 
-# This pipeline cleans the CI pools    
+# This job cleans the CI pools    
 clean-ci-pool:
   stage: clean-pool
   rules:
     - if: '$TARGETTASKNAME == "schedule-clean-pool"'   
   script:
-      - sfdx sfpowerscripts:pool:delete -t CI1 -v "$DEVHUB_ALIAS" -a
+      - sfdx sfpowerscripts:pool:delete -t CI1 -v "$DEVHUB_ALIAS" -a   
+
+# This job deletes a specified fetched developer scratch org by username   
+delete-fetched-so:
+  stage: delete-fetched-so
+  rules:
+    - if: '$TARGETTASKNAME == "manual-delete-fetched-so"'     
+  script:
+      - sfdx sfpowerscripts:pool:org:delete -v "$DEVHUB_ALIAS" -u $SCRATCH_ORG_USERNAME
+
+## 5. Publish Scratch Org Pool Metrics to CI/CD Dashboards 
+
+# This job publishes pool metrics to your dashboards    
+report-so-pool:
+  stage: report-so-pool
+  rules:
+    - if: '$TARGETTASKNAME == "schedule-report-so-pool"'   
+  script:
+      - sfdx sfpowerscripts:pool:metrics:publish -v "$DEVHUB_ALIAS"
