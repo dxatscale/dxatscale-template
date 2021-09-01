@@ -16,6 +16,11 @@ name: 'Replenish CI Pools - Auto Triggered'
 
 on:
   workflow_dispatch:
+    inputs:
+      gitRef:
+        description: "Commit Id from where the pools should be created"
+        required: false
+        default: 'main'
   schedule:
     - cron: '0 14 * * *'
 
@@ -42,6 +47,8 @@ jobs:
     steps:
 
       - uses: actions/checkout@v2
+        with: 
+         ref: ${{ github.event.inputs.gitRef }}
 
    
       - name: 'Authenticate Dev Hub'
