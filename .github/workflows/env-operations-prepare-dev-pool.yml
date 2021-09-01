@@ -54,3 +54,10 @@ jobs:
 
       - name: 'Prepare a pool of scratch orgs'
         run: 'sfdx sfpowerscripts:orchestrator:prepare -f config/devpool.json -v devhub'
+        
+              # Publish artifacts
+      - uses: actions/upload-artifact@v2
+        if: ${{ always() }}
+        with:
+          name: scratchorg-logs-pool-ci
+          path: .sfpowerscripts/prepare_logs
