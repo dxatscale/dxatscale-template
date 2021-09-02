@@ -58,7 +58,7 @@ jobs:
 
 
       - name: 'Prepare a pool of scratch orgs'
-        run: 'sfdx sfpowerscripts:orchestrator:prepare -f config/cipool.json -v devhub'
+        run: 'sfdx sfpowerscripts:orchestrator:prepare -f config/project-ci-pool-def.json -v devhub'
         
       # Publish artifacts
       - uses: actions/upload-artifact@v2

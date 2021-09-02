@@ -53,7 +53,7 @@ jobs:
           AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 'Prepare a pool of scratch orgs'
-        run: 'sfdx sfpowerscripts:orchestrator:prepare -f config/devpool.json -v devhub'
+        run: 'sfdx sfpowerscripts:orchestrator:prepare -f config/project-dev-pool-def.json -v devhub'
         
               # Publish artifacts
       - uses: actions/upload-artifact@v2
