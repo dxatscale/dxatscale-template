@@ -1,3 +1,12 @@
+# ██████████   █████ █████  █████████   █████████                     ████
+#░░███░░░░███ ░░███ ░░███  ███░░░░░░   ███░░░░░███                   ░░███
+#  ███   ░░███ ░░███ ███  ░███ ██████ ░███    ░░░   ██████   ██████   ░███   ██████
+# ░███    ░███  ░░█████   ░███░███░███░░█████████  ███░░███ ░░░░░███  ░███  ███░░███
+# ░███    ░███   ███░███  ░███░███░███ ░░░░░░░░███░███ ░░░   ███████  ░███ ░███████
+# ░███    ███   ███ ░░███ ░███░░░ ░███ ███    ░███░███  ███ ███░░███  ░███ ░███░░░
+# ██████████   █████ █████░░█████████ ░░█████████ ░░██████ ░░████████ █████░░██████
+# ░░░░░░░░░░   ░░░░░ ░░░░░  ░░░░░░░░░   ░░░░░░░░░   ░░░░░░   ░░░░░░░░ ░░░░░  ░░░░░░
+# 
 # DX@Scale CI/CD Template for Azure Pipelines
 #-----------------------------------------------------------------------------------------------------------
 # Maintained by @ramesh-karanji(Ramesh Karanji)
@@ -8,7 +17,6 @@
 # To know more on sfpowerscripts, visit- https://sfpowerscripts.dxatscale.io/
 # To know more on sfpowerkit, visit- https://github.com/Accenture/sfpowerkit
 # 
-# Clean existing pools of scratch orgs
 #
 #
 # --- To report metrics about the pipeline to datadog or newrelic, set these variables in CICD group
@@ -27,6 +35,9 @@
 #  # SFPOWERSCRIPTS_STATSD_HOST: '<STATSD_HOST_IP>'
 #
 # --------------------------------------------------------------------------------------------------------
+
+
+## Clean existing pools of scratch orgs
 
 name: 'Scratch Org Recycler - User Triggered'
 trigger: none
