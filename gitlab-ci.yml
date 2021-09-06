@@ -155,7 +155,7 @@ ST:
   script:
     - echo "${{ secrets.ST_SFDX_AUTH_URL }}" > ./st_authfile
     - sfdx auth:sfdxurl:store -f ./st_authfile -a st
-    - sfdx sfpowerscripts:orchestrator:release -u st -p releasedefinitions/releaseDefinition.yml --npm --npmrcpath .npmrc --scope "$CI_PROJECT_NAME"  --generatechangelog --branchname "$CI_COMMIT_BRANCH" 
+    - sfdx sfpowerscripts:orchestrator:release -u st -p releasedefinitions/releaseDefinition.yml --npm --npmrcpath .npmrc --scope "$CI_PROJECT_NAME"  --generatechangelog --branchname changelog 
   environment:
     name: ST
   resource_group: ST
@@ -169,7 +169,7 @@ SIT:
   script:
     - echo "${{ secrets.SIT_SFDX_AUTH_URL }}" > ./sit_authfile
     - sfdx auth:sfdxurl:store -f ./sit_authfile -a sit
-    - sfdx sfpowerscripts:orchestrator:release -u sit -p releasedefinitions/releaseDefinition.yml --npm --npmrcpath .npmrc --scope "$CI_PROJECT_NAME"  --generatechangelog --branchname "$CI_COMMIT_BRANCH" 
+    - sfdx sfpowerscripts:orchestrator:release -u sit -p releasedefinitions/releaseDefinition.yml --npm --npmrcpath .npmrc --scope "$CI_PROJECT_NAME"  --generatechangelog --branchname changelog 
   environment:
     name: SIT
   resource_group: SIT
@@ -182,7 +182,7 @@ UAT:
   script:
     - echo "${{ secrets.UAT_SFDX_AUTH_URL }}" > ./uat_authfile
     - sfdx auth:sfdxurl:store -f ./sit_authfile -a uat
-    - sfdx sfpowerscripts:orchestrator:release -u uat -p releasedefinitions/releaseDefinition.yml --npm --npmrcpath .npmrc --scope "$CI_PROJECT_NAME"  --generatechangelog --branchname "$CI_COMMIT_BRANCH" 
+    - sfdx sfpowerscripts:orchestrator:release -u uat -p releasedefinitions/releaseDefinition.yml --npm --npmrcpath .npmrc --scope "$CI_PROJECT_NAME"  --generatechangelog --branchname changelog 
   environment:
     name: UAT
   resource_group: UAT
@@ -196,7 +196,7 @@ PROD:
   script:
     - echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./prod_authfile
     - sfdx auth:sfdxurl:store -f ./prod_authfile -a prod
-    - sfdx sfpowerscripts:orchestrator:release -u prod -p releasedefinitions/releaseDefinition.yml --npm --npmrcpath .npmrc --scope "$CI_PROJECT_NAME" --generatechangelog --branchname "$CI_COMMIT_BRANCH" 
+    - sfdx sfpowerscripts:orchestrator:release -u prod -p releasedefinitions/releaseDefinition.yml --npm --npmrcpath .npmrc --scope "$CI_PROJECT_NAME" --generatechangelog --branchname changelog 
   environment:
     name: PROD
   resource_group: PROD
