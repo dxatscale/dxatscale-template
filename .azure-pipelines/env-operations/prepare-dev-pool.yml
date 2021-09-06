@@ -72,7 +72,7 @@ steps:
 
 ## Scratch Org Pool creation  for DEV's
     - script: |
-          sfdx sfpowerscripts:orchestrator:prepare -f config/devpool.json -v devhub --npmrcpath $(npmrc.secureFilePath)
+          sfdx sfpowerscripts:orchestrator:prepare -f config/project-dev-pool-def.json -v devhub --npmrcpath $(npmrc.secureFilePath)
       displayName: 'Prepare a pool of scratch orgs'
 
 
