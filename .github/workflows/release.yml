@@ -10,6 +10,7 @@
 
 
 # This pipeline is used to release a set of packages into respective environments
+# Changelog will be written to changelog branch
 
 name: 'CD Pipeline - User Triggered'
 
@@ -54,7 +55,7 @@ jobs:
 
       # Release to environment
       - name: 'Release to ST'
-        run: 'sfdx sfpowerscripts:orchestrator:release -u st -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname ${GITHUB_REF#refs/heads/} -g "::group::,::endgroup::"'
+        run: 'sfdx sfpowerscripts:orchestrator:release -u st -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname changelog -g "::group::,::endgroup::"'
 
 
   SIT:
@@ -86,7 +87,7 @@ jobs:
 
       # Release to environment
       - name: 'Release to SIT'
-        run: 'sfdx sfpowerscripts:orchestrator:release -u sit -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname ${GITHUB_REF#refs/heads/} -g "::group::,::endgroup::" '
+        run: 'sfdx sfpowerscripts:orchestrator:release -u sit -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname changelog -g "::group::,::endgroup::" '
 
 
   UAT:
@@ -117,7 +118,7 @@ jobs:
 
       # Release to environment
       - name: 'Release to UAT'
-        run: 'sfdx sfpowerscripts:orchestrator:release -u uat -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname ${GITHUB_REF#refs/heads/} -g "::group::,::endgroup::"'
+        run: 'sfdx sfpowerscripts:orchestrator:release -u uat -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname changelog -g "::group::,::endgroup::"'
 
 
 
@@ -150,4 +151,4 @@ jobs:
 
       # Release to environment
       - name: 'Release to PROD'
-        run: 'sfdx sfpowerscripts:orchestrator:release -u prod -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname ${GITHUB_REF#refs/heads/} -g "::group::,::endgroup::"'
+        run: 'sfdx sfpowerscripts:orchestrator:release -u prod -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname changelog -g "::group::,::endgroup::"'

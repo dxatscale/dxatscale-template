@@ -207,7 +207,7 @@ build:
     name: build-env
   resource_group: build
 
-## 3. This pipeline is used to release a set of packages into respective environments (DEV to PROD). Initial ST environment is provided as a reference.
+## 3. This pipeline is used to release a set of packages into respective environments (DEV to PROD). Initial ST, SIT, UAT and PROD environments are provided as a reference.
 # Initiate a release to an org, according to the release configuration defined in a release-definition YAML file
 
 # This Stage will release package to ST Environment
@@ -216,15 +216,59 @@ ST:
   extends: .run-on-manual
   needs: ["build"] 
   script:
-    - sfdx auth:sfdxurl:store -f "$ST_SFDX_AUTH_URL" -a "$ST_ALIAS"
-    - sfdx sfpowerscripts:orchestrator:release -u "$ST_ALIAS" -p releasedefinitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog -b $CI_COMMIT_BRANCH
+    - echo "${{ secrets.ST_SFDX_AUTH_URL }}" > ./st_authfile
+    - sfdx auth:sfdxurl:store -f ./st_authfile -a st
+    - sfdx sfpowerscripts:orchestrator:release -u st -p releasedefinitions/releaseDefinition.yml --npm --npmrcpath .npmrc --scope "$CI_PROJECT_NAME"  --generatechangelog --branchname changelog 
   environment:
     name: ST
   resource_group: ST
 
-## 4. Scratch Org Pool creation and clean pipelines for CI and DEV's
 
-# This job creates the CI pools
+# This Stage will release package to SIT Environment
+SIT:
+  stage: release
+  extends: .release-rules
+  needs: ["ST"]  
+  script:
+    - echo "${{ secrets.SIT_SFDX_AUTH_URL }}" > ./sit_authfile
+    - sfdx auth:sfdxurl:store -f ./sit_authfile -a sit
+    - sfdx sfpowerscripts:orchestrator:release -u sit -p releasedefinitions/releaseDefinition.yml --npm --npmrcpath .npmrc --scope "$CI_PROJECT_NAME"  --generatechangelog --branchname changelog 
+  environment:
+    name: SIT
+  resource_group: SIT
+
+# This Stage will release package to UAT Environment
+UAT:
+  stage: release
+  extends: .release-rules
+  needs: ["SIT"]  
+  script:
+    - echo "${{ secrets.UAT_SFDX_AUTH_URL }}" > ./uat_authfile
+    - sfdx auth:sfdxurl:store -f ./sit_authfile -a uat
+    - sfdx sfpowerscripts:orchestrator:release -u uat -p releasedefinitions/releaseDefinition.yml --npm --npmrcpath .npmrc --scope "$CI_PROJECT_NAME"  --generatechangelog --branchname changelog 
+  environment:
+    name: UAT
+  resource_group: UAT
+
+
+ # This Stage will release package to PROD Environment
+PROD:
+  stage: release
+  extends: .release-rules
+  needs: ["UAT"]  
+  script:
+    - echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./prod_authfile
+    - sfdx auth:sfdxurl:store -f ./prod_authfile -a prod
+    - sfdx sfpowerscripts:orchestrator:release -u prod -p releasedefinitions/releaseDefinition.yml --npm --npmrcpath .npmrc --scope "$CI_PROJECT_NAME" --generatechangelog --branchname changelog 
+  environment:
+    name: PROD
+  resource_group: PROD
+
+ 
+##4. Scratch Org Pool creation and clean pipelines for CI and DEV's
+
+# This pipeline creates the CI pools
+
 prepare-ci-pool:
   stage: prepare-ci-pool
   rules:

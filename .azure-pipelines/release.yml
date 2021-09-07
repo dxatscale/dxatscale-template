@@ -18,7 +18,7 @@
 # To know more on sfpowerkit, visit- https://github.com/Accenture/sfpowerkit
 # 
 # This pipeline is used to release a set of packages into respective environments
-#
+# Changelog will be written to changelog branch
 #
 # --- To report metrics about the pipeline to datadog or newrelic, set these variables in CICD group
 #
@@ -93,7 +93,7 @@ stages:
                  - task: CmdLine@2
                    displayName: 'Deploy packages to st'
                    inputs:
-                      script: 'sfdx sfpowerscripts:orchestrator:release -u st -p ${{ parameters.releasedefintionPath }} --npm --scope  $(scope) --npmrcpath $(npmrc.secureFilePath) --generatechangelog --branchname $(Build.SourceBranchName)  -g "##[group],##[endgroup]"'
+                      script: 'sfdx sfpowerscripts:orchestrator:release -u st -p ${{ parameters.releasedefintionPath }} --npm --scope  $(scope) --npmrcpath $(npmrc.secureFilePath) --generatechangelog --branchname changelog  -g "##[group],##[endgroup]"'
                    env:
                      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
@@ -135,7 +135,7 @@ stages:
                  - task: CmdLine@2
                    displayName: 'Deploy packages to SIT'
                    inputs:
-                      script: 'sfdx sfpowerscripts:orchestrator:release -u sit -p ${{ parameters.releasedefintionPath }} --npm --scope  $(scope) --npmrcpath $(npmrc.secureFilePath) --generatechangelog  --branchname $(Build.SourceBranchName)  -g "##[group],##[endgroup]"'
+                      script: 'sfdx sfpowerscripts:orchestrator:release -u sit -p ${{ parameters.releasedefintionPath }} --npm --scope  $(scope) --npmrcpath $(npmrc.secureFilePath) --generatechangelog  --branchname changelog  -g "##[group],##[endgroup]"'
                    env:
                      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
@@ -177,7 +177,7 @@ stages:
                 - task: CmdLine@2
                   displayName: 'Deploy packages to UAT'
                   inputs:
-                      script: 'sfdx sfpowerscripts:orchestrator:release -u uat -p ${{ parameters.releasedefintionPath }} --npm --scope $(scope) --npmrcpath $(npmrc.secureFilePath) --generatechangelog  --branchname $(Build.SourceBranchName)  -g "##[group],##[endgroup]"'
+                      script: 'sfdx sfpowerscripts:orchestrator:release -u uat -p ${{ parameters.releasedefintionPath }} --npm --scope $(scope) --npmrcpath $(npmrc.secureFilePath) --generatechangelog  --branchname changelog  -g "##[group],##[endgroup]"'
                   env:
                      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
@@ -220,6 +220,6 @@ stages:
                 - task: CmdLine@2
                   displayName: 'Deploy packages to Prod'
                   inputs:
-                      script: 'sfdx sfpowerscripts:orchestrator:release -u prod -p ${{ parameters.releasedefintionPath }} --npm --scope $(scope) --npmrcpath $(npmrc.secureFilePath) --generatechangelog  --branchname $(Build.SourceBranchName)  -g "##[group],##[endgroup]"'
+                      script: 'sfdx sfpowerscripts:orchestrator:release -u prod -p ${{ parameters.releasedefintionPath }} --npm --scope $(scope) --npmrcpath $(npmrc.secureFilePath) --generatechangelog  --branchname changelog  -g "##[group],##[endgroup]"'
                   env:
                      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
