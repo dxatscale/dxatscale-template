@@ -1,0 +1,257 @@
+{
+  "title": "Production Deployment Performance",
+  "description": "",
+  "widgets": [
+    {
+      "id": 7284191779613092,
+      "layout": { "x": 0, "y": 0, "width": 106, "height": 36 },
+      "definition": {
+        "title": "Time to Install Package in Prod",
+        "title_size": "16",
+        "title_align": "left",
+        "time": { "live_span": "1w" },
+        "type": "query_table",
+        "requests": [
+          {
+            "aggregator": "last",
+            "conditional_formats": [
+              { "comparator": ">", "palette": "white_on_red", "value": 10 },
+              { "comparator": ">=", "palette": "white_on_yellow", "value": 8 },
+              { "comparator": "<", "palette": "white_on_green", "value": 7 }
+            ],
+            "order": "desc",
+            "q": "max:sfpowerscripts.package.installation.elapsed_time.max{target_org:prod} by {package}, max:sfpowerscripts.package.installation.elapsed_time.max{target_org:prod} by {package}/1000/60",
+            "alias": "Time to Install in Prod",
+            "limit": 100,
+            "cell_display_mode": ["bar"]
+          },
+          {
+            "q": "max:sfpowerscripts.package.metadatacount{*} by {package}",
+            "alias": "Metadata Count",
+            "conditional_formats": [
+              { "comparator": ">", "palette": "yellow_on_white", "value": 200 }
+            ],
+            "cell_display_mode": ["bar"],
+            "aggregator": "max"
+          },
+          {
+            "q": "avg:sfpowerscripts.package.installation.elapsed_time.avg{*} by {package}/1000/60",
+            "alias": "Average Installation Time",
+            "cell_display_mode": ["bar"],
+            "aggregator": "avg"
+          }
+        ],
+        "has_search_bar": "auto"
+      }
+    },
+    {
+      "id": 7328370028518792,
+      "layout": { "x": 106, "y": 0, "width": 47, "height": 18 },
+      "definition": {
+        "title": "Time spend in Prod Deployment (Last)",
+        "title_size": "16",
+        "title_align": "left",
+        "time": { "live_span": "1y" },
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "sum:sfpowerscripts.deploy.duration{targetorg:prod}/1000/60",
+            "aggregator": "last",
+            "conditional_formats": [
+              { "comparator": "<=", "palette": "white_on_green", "value": 35 },
+              { "comparator": "<=", "palette": "white_on_yellow", "value": 45 },
+              { "comparator": ">=", "palette": "white_on_red", "value": 60 }
+            ]
+          }
+        ],
+        "autoscale": true,
+        "precision": 2
+      }
+    },
+    {
+      "id": 7582112711062668,
+      "layout": { "x": 0, "y": 36, "width": 40, "height": 20 },
+      "definition": {
+        "title": "Number of Packages installed in Prod  (Weekly)",
+        "title_size": "16",
+        "title_align": "left",
+        "time": { "live_span": "1w" },
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "sum:sfpowerscripts.package.installation{target_org:prod}.as_count()",
+            "aggregator": "sum"
+          }
+        ],
+        "autoscale": false,
+        "precision": 0
+      }
+    },
+    {
+      "id": 8402947182727442,
+      "layout": { "x": 40, "y": 36, "width": 32, "height": 20 },
+      "definition": {
+        "title": " Failed  Ins. in Prod",
+        "title_size": "16",
+        "title_align": "left",
+        "time": { "live_span": "1w" },
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "sum:sfpowerscripts.package.installation.failure{targetorg:prod}.as_count()",
+            "aggregator": "sum",
+            "conditional_formats": [
+              { "comparator": ">", "palette": "white_on_red", "value": 2 }
+            ]
+          }
+        ],
+        "precision": 0
+      }
+    },
+    {
+      "id": 388007582204644,
+      "layout": { "x": 106, "y": 18, "width": 47, "height": 25 },
+      "definition": {
+        "title": "Last Deployments in a Month (Time vs Number)",
+        "title_size": "16",
+        "title_align": "left",
+        "show_legend": false,
+        "legend_layout": "vertical",
+        "legend_columns": ["avg", "min", "max", "value", "sum"],
+        "time": { "live_span": "1mo" },
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "max:sfpowerscripts.deploy.duration{targetorg:prod}/1000/60",
+            "on_right_yaxis": false,
+            "metadata": [
+              {
+                "expression": "max:sfpowerscripts.deploy.duration{targetorg:prod}/1000/60",
+                "alias_name": "Time to Deploy"
+              }
+            ],
+            "style": {
+              "palette": "cool",
+              "line_type": "solid",
+              "line_width": "normal"
+            },
+            "display_type": "bars"
+          },
+          {
+            "q": "max:sfpowerscripts.deploy.succeeded{targetorg:prod}",
+            "on_right_yaxis": false,
+            "metadata": [
+              {
+                "expression": "max:sfpowerscripts.deploy.succeeded{targetorg:prod}",
+                "alias_name": "Number of Packages"
+              }
+            ],
+            "style": {
+              "palette": "purple",
+              "line_type": "solid",
+              "line_width": "normal"
+            },
+            "display_type": "bars"
+          }
+        ],
+        "yaxis": {
+          "include_zero": true,
+          "scale": "linear",
+          "label": "",
+          "min": "auto",
+          "max": "auto"
+        },
+        "markers": [{ "value": "y = 0", "display_type": "error dashed" }]
+      }
+    },
+    {
+      "id": 1102946020153536,
+      "layout": { "x": 72, "y": 36, "width": 34, "height": 20 },
+      "definition": {
+        "title": "Average Time Spend in Prod Deployment",
+        "title_size": "16",
+        "title_align": "left",
+        "time": { "live_span": "1y" },
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "avg:sfpowerscripts.deploy.duration{targetorg:prod}/1000/60",
+            "aggregator": "avg",
+            "conditional_formats": [
+              { "comparator": "<=", "palette": "white_on_green", "value": 35 },
+              { "comparator": "<=", "palette": "white_on_yellow", "value": 45 },
+              { "comparator": ">=", "palette": "white_on_red", "value": 60 }
+            ]
+          }
+        ],
+        "autoscale": true,
+        "precision": 2
+      }
+    },
+    {
+      "id": 8649808445747944,
+      "layout": { "x": 0, "y": 56, "width": 40, "height": 20 },
+      "definition": {
+        "title": "Total Deployments Scheduled to Prod (Weekly)",
+        "title_size": "16",
+        "title_align": "left",
+        "time": { "live_span": "1w" },
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "sum:sfpowerscripts.deploy.succeeded{targetorg:prod}.as_count()+sum:sfpowerscripts.deploy.failed{targetorg:prod}.as_count()",
+            "aggregator": "sum"
+          }
+        ],
+        "autoscale": false,
+        "precision": 0
+      }
+    },
+    {
+      "id": 2995610095230724,
+      "layout": { "x": 40, "y": 56, "width": 32, "height": 20 },
+      "definition": {
+        "title": "Total Deployments Succeeded in  Prod (Weekly)",
+        "title_size": "16",
+        "title_align": "left",
+        "time": { "live_span": "1w" },
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "sum:sfpowerscripts.deploy.succeeded{targetorg:prod}.as_count()",
+            "aggregator": "sum"
+          }
+        ],
+        "autoscale": false,
+        "precision": 0
+      }
+    },
+    {
+      "id": 6474770371570744,
+      "layout": { "x": 72, "y": 56, "width": 34, "height": 20 },
+      "definition": {
+        "title": "Total Deployments Failed in Prod (Weekly)",
+        "title_size": "16",
+        "title_align": "left",
+        "time": { "live_span": "1w" },
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "sum:sfpowerscripts.deploy.failed{targetorg:prod}.as_count()",
+            "aggregator": "sum",
+            "conditional_formats": [
+              { "comparator": ">=", "palette": "white_on_red", "value": 1 }
+            ]
+          }
+        ],
+        "autoscale": false,
+        "precision": 0
+      }
+    }
+  ],
+  "template_variables": [],
+  "layout_type": "free",
+  "is_read_only": false,
+  "notify_list": [],
+  "id": "fjc-9tr-fwm"
+}

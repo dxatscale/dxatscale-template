@@ -1,0 +1,224 @@
+{
+  "title": "CI/CD Performance",
+  "description": "",
+  "widgets": [
+    {
+      "id": 2642419893800950,
+      "layout": { "x": 73, "y": 19, "width": 34, "height": 15 },
+      "definition": {
+        "title": "Avg Build Time",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "sum:sfpowerscripts.build.duration{is_diffcheck_enabled:true,stage:build}/1000/60",
+            "aggregator": "avg",
+            "conditional_formats": [
+              { "comparator": "<=", "palette": "white_on_green", "value": 60 }
+            ]
+          }
+        ],
+        "autoscale": false,
+        "custom_unit": "mins",
+        "precision": 2
+      }
+    },
+    {
+      "id": 4791306016991924,
+      "layout": { "x": 39, "y": 19, "width": 34, "height": 15 },
+      "definition": {
+        "title": "PR Validation Time",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "avg:sfpowerscripts.validate.duration{*}/1000/60",
+            "aggregator": "avg",
+            "conditional_formats": [
+              { "comparator": ">", "palette": "white_on_yellow", "value": 30 },
+              { "comparator": ">", "palette": "white_on_red", "value": 40 }
+            ]
+          }
+        ],
+        "autoscale": true,
+        "custom_unit": "mins",
+        "precision": 2
+      }
+    },
+    {
+      "id": 119844061853764,
+      "layout": { "x": 107, "y": 19, "width": 38, "height": 15 },
+      "definition": {
+        "title": "Average Deployment Duration",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "avg:sfpowerscripts.deploy.duration{*}/1000/60",
+            "aggregator": "avg",
+            "conditional_formats": [
+              { "comparator": "<=", "palette": "white_on_green", "value": 60 }
+            ]
+          }
+        ],
+        "autoscale": true,
+        "custom_unit": "mins",
+        "precision": 2
+      }
+    },
+    {
+      "id": 4566729630606536,
+      "layout": { "x": 73, "y": 34, "width": 34, "height": 19 },
+      "definition": {
+        "title": "Success Ratio of Build",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "100-(sum:sfpowerscripts.build.failed.packages{*}.as_count()/(sum:sfpowerscripts.build.succeeded.packages{is_dependency_validated:true}.as_count()+sum:sfpowerscripts.build.failed.packages{*}.as_count()))*100",
+            "aggregator": "sum",
+            "conditional_formats": [
+              { "comparator": "<=", "palette": "white_on_yellow", "value": 90 },
+              { "comparator": "<=", "palette": "white_on_red", "value": 60 },
+              { "comparator": ">=", "palette": "white_on_green", "value": 90 }
+            ]
+          }
+        ],
+        "autoscale": false,
+        "custom_unit": "%",
+        "precision": 2
+      }
+    },
+    {
+      "id": 4457031461476488,
+      "layout": { "x": 107, "y": 34, "width": 38, "height": 19 },
+      "definition": {
+        "title": "Success Ratio of Deploy",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "100-(sum:sfpowerscripts.deploy.failed{*}.as_count()/(sum:sfpowerscripts.deploy.succeeded{*}.as_count()+sum:sfpowerscripts.deploy.failed{*}.as_count()))*100",
+            "aggregator": "sum",
+            "conditional_formats": [
+              { "comparator": ">=", "palette": "white_on_green", "value": 90 },
+              { "comparator": ">=", "palette": "white_on_yellow", "value": 80 },
+              { "comparator": "<=", "palette": "white_on_red", "value": 80 }
+            ]
+          }
+        ],
+        "autoscale": false,
+        "custom_unit": "%",
+        "precision": 2
+      }
+    },
+    {
+      "id": 984644028061132,
+      "layout": { "x": 39, "y": 34, "width": 34, "height": 19 },
+      "definition": {
+        "title": "PR Validation Success Ratio",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "100-(count:sfpowerscripts.validate.failed{*}/(count:sfpowerscripts.validate.failed{*}+count:sfpowerscripts.validate.duration{*}))*100",
+            "aggregator": "sum",
+            "conditional_formats": [
+              { "comparator": "<=", "palette": "white_on_red", "value": 80 }
+            ]
+          }
+        ],
+        "autoscale": false,
+        "custom_unit": "%",
+        "precision": 2
+      }
+    },
+    {
+      "id": 203945818341200,
+      "layout": { "x": 1, "y": 0, "width": 38, "height": 19 },
+      "definition": {
+        "title": "Average Pool Preparation Time",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "avg:sfpowerscripts.prepare.duration{*}/1000/60",
+            "aggregator": "avg"
+          }
+        ],
+        "autoscale": true,
+        "custom_unit": "mins",
+        "precision": 2
+      }
+    },
+    {
+      "id": 2663738789953170,
+      "layout": { "x": 39, "y": 0, "width": 34, "height": 19 },
+      "definition": {
+        "title": "Number of PRs Raised",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "count:sfpowerscripts.validate.duration{*}",
+            "aggregator": "sum"
+          }
+        ],
+        "autoscale": false,
+        "custom_unit": "",
+        "precision": 0
+      }
+    },
+    {
+      "id": 7504668771371130,
+      "layout": { "x": 107, "y": 0, "width": 38, "height": 19 },
+      "definition": {
+        "title": "Deploy Scheduled ",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "count:sfpowerscripts.deploy.duration{*}",
+            "aggregator": "sum"
+          }
+        ],
+        "autoscale": false,
+        "custom_unit": "",
+        "precision": 0
+      }
+    },
+    {
+      "id": 2777880614150050,
+      "layout": { "x": 73, "y": 0, "width": 34, "height": 19 },
+      "definition": {
+        "title": "Number of Builds",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "count:sfpowerscripts.build.duration{stage:build}",
+            "aggregator": "sum"
+          }
+        ],
+        "autoscale": false,
+        "custom_unit": "",
+        "precision": 0
+      }
+    }
+  ],
+  "template_variables": [],
+  "layout_type": "free",
+  "is_read_only": false,
+  "notify_list": [],
+  "id": "q6t-ggy-4re"
+}

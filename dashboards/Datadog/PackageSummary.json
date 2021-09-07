@@ -1,0 +1,119 @@
+{
+  "title": "Package Summary",
+  "description": "",
+  "widgets": [
+    {
+      "id": 521267534608418,
+      "layout": { "x": 0, "y": 0, "width": 182, "height": 91 },
+      "definition": {
+        "title": "Package Statistics ",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "query_table",
+        "requests": [
+          {
+            "q": "exclude_null(max:sfpowerscripts.package.metadatacount{*} by {package})",
+            "aggregator": "max",
+            "conditional_formats": [
+              { "comparator": ">", "palette": "yellow_on_white", "value": 200 }
+            ],
+            "cell_display_mode": ["bar"],
+            "alias": "Metadata Count"
+          },
+          {
+            "aggregator": "max",
+            "conditional_formats": [
+              { "comparator": ">", "palette": "red_on_white", "value": 20 },
+              { "comparator": ">", "palette": "yellow_on_white", "value": 15 }
+            ],
+            "order": "desc",
+            "q": "exclude_null(max:sfpowerscripts.package.elapsed.time.max{*} by {package})/1000/60, 25",
+            "alias": "Time To Build(m)",
+            "limit": 50,
+            "cell_display_mode": ["bar"]
+          },
+          {
+            "q": "exclude_null(sum:sfpowerscripts.package.installation.elapsed_time.avg{target_org:prod} by {package})/1000/60, 25",
+            "alias": "Time to Install(m)",
+            "conditional_formats": [
+              { "comparator": ">", "palette": "red_on_white", "value": 5 }
+            ],
+            "cell_display_mode": ["bar"],
+            "aggregator": "avg"
+          },
+          {
+            "q": "exclude_null(max:sfpowerscripts.apextest.tests.ran{*} by {package}), 25",
+            "alias": "Number of Tests",
+            "cell_display_mode": ["bar"],
+            "aggregator": "max"
+          },
+          {
+            "q": "exclude_null(avg:sfpowerscripts.apextest.testtotal.time.avg{*} by {package})/1000, 25",
+            "alias": "Unit Test Time(s)",
+            "conditional_formats": [
+              { "comparator": ">", "palette": "red_on_white", "value": 420 }
+            ],
+            "cell_display_mode": ["bar"],
+            "aggregator": "max"
+          },
+          {
+            "q": "exclude_null(max:sfpowerscripts.apextest.command.time.avg{*} by {package})/1000/60, 25",
+            "alias": "Apex  Test Queue Time(m)",
+            "conditional_formats": [
+              { "comparator": ">", "palette": "red_on_white", "value": 10 }
+            ],
+            "cell_display_mode": ["bar"],
+            "aggregator": "max"
+          },
+          {
+            "q": "exclude_null(max:sfpowerscripts.apextest.testcoverage{*} by {package}), 25",
+            "alias": "Test Coverage(%)",
+            "conditional_formats": [
+              { "comparator": ">=", "palette": "green_on_white", "value": 80 },
+              { "comparator": "<=", "palette": "white_on_red", "value": 79 }
+            ],
+            "cell_display_mode": ["bar"],
+            "aggregator": "max"
+          },
+          {
+            "q": "exclude_null(max:sfpowerscripts.build.scheduled.packages{*} by {package}.as_count()), 25",
+            "alias": "Builds Scheduled",
+            "cell_display_mode": ["bar"],
+            "aggregator": "max"
+          },
+          {
+            "q": "exclude_null(max:sfpowerscripts.build.failed.packages{*} by {package}.as_count()), 25",
+            "alias": "Build Failures",
+            "conditional_formats": [
+              { "comparator": ">=", "palette": "red_on_white", "value": 5 },
+              { "comparator": ">=", "palette": "yellow_on_white", "value": 3 }
+            ],
+            "cell_display_mode": ["bar"],
+            "aggregator": "max"
+          },
+          {
+            "q": "exclude_null(max:sfpowerscripts.package.installation{*} by {package}.as_count()), 25",
+            "alias": "Number of Installation",
+            "cell_display_mode": ["bar"],
+            "aggregator": "max"
+          },
+          {
+            "q": "exclude_null(max:sfpowerscripts.package.installation.failure{*} by {package}.as_count()), 25",
+            "alias": "Installation Failure",
+            "conditional_formats": [
+              { "comparator": ">=", "palette": "red_on_white", "value": 3 }
+            ],
+            "cell_display_mode": ["bar"],
+            "aggregator": "max"
+          }
+        ],
+        "has_search_bar": "auto"
+      }
+    }
+  ],
+  "template_variables": [],
+  "layout_type": "free",
+  "is_read_only": false,
+  "notify_list": [],
+  "id": "zxb-64v-rjf"
+}
