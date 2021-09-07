@@ -33,14 +33,18 @@
 # DEVHUB_ALIAS (variable)
 # DEVHUB_SFDX_AUTH_URL (file, masked)
 #------------------------------------------------------------------------------------------------------------
-# Sandbox Environments Authentication Details (6+)
+# Sandbox Environments Authentication Details (10+)
 #------------------------------------------------------------------------------------------------------------
 # SHAREDDEV_ALIAS (variable)
 # SHAREDDEV_SFDX_AUTH_URL (file, masked)
 # ST_ALIAS (variable)
 # ST_SFDX_AUTH_URL (file, masked)
+# SIT_ALIAS (variable)
+# SIT_SFDX_AUTH_URL (file, masked)
 # UAT_ALIAS (variable)
 # UAT_SFDX_AUTH_URL (file, masked)
+# PROD_ALIAS (variable)
+# PROD_SFDX_AUTH_URL (file, masked)
 #------------------------------------------------------------------------------------------------------------
 # NPM Scope - Scopes are a way of grouping related packages together for your artifacts (1)
 #------------------------------------------------------------------------------------------------------------
@@ -115,6 +119,18 @@ stages:
       when: never     
     - if: '($CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH=~ /^release*$/)'  
       when: manual  
+
+# This rule is designed for manual triggers for releases
+.release-rules:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never     
+    - if: '$TARGETTASKNAME == "manual-delete-fetched-so"'  
+      when: never     
+    - if: '$CI_COMMIT_BRANCH=~ /^release*$/'  
+      when: manual        
 
 # This rule is designed for merge requests to trigger off the Validation stages
 .run-on-merge-request:
@@ -216,9 +232,8 @@ ST:
   extends: .run-on-manual
   needs: ["build"] 
   script:
-    - echo "${{ secrets.ST_SFDX_AUTH_URL }}" > ./st_authfile
-    - sfdx auth:sfdxurl:store -f ./st_authfile -a st
-    - sfdx sfpowerscripts:orchestrator:release -u st -p releasedefinitions/releaseDefinition.yml --npm --npmrcpath .npmrc --scope "$CI_PROJECT_NAME"  --generatechangelog --branchname changelog 
+    - sfdx auth:sfdxurl:store -f "$ST_SFDX_AUTH_URL" -a "$ST_ALIAS"
+    - sfdx sfpowerscripts:orchestrator:release -u "$ST_ALIAS" -p releasedefinitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
   environment:
     name: ST
   resource_group: ST
@@ -230,9 +245,8 @@ SIT:
   extends: .release-rules
   needs: ["ST"]  
   script:
-    - echo "${{ secrets.SIT_SFDX_AUTH_URL }}" > ./sit_authfile
-    - sfdx auth:sfdxurl:store -f ./sit_authfile -a sit
-    - sfdx sfpowerscripts:orchestrator:release -u sit -p releasedefinitions/releaseDefinition.yml --npm --npmrcpath .npmrc --scope "$CI_PROJECT_NAME"  --generatechangelog --branchname changelog 
+    - sfdx auth:sfdxurl:store -f "$SIT_SFDX_AUTH_URL" -a "$SIT_ALIAS"
+    - sfdx sfpowerscripts:orchestrator:release -u "$SIT_ALIAS" -p releasedefinitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
   environment:
     name: SIT
   resource_group: SIT
@@ -243,9 +257,8 @@ UAT:
   extends: .release-rules
   needs: ["SIT"]  
   script:
-    - echo "${{ secrets.UAT_SFDX_AUTH_URL }}" > ./uat_authfile
-    - sfdx auth:sfdxurl:store -f ./sit_authfile -a uat
-    - sfdx sfpowerscripts:orchestrator:release -u uat -p releasedefinitions/releaseDefinition.yml --npm --npmrcpath .npmrc --scope "$CI_PROJECT_NAME"  --generatechangelog --branchname changelog 
+    - sfdx auth:sfdxurl:store -f "$UAT_SFDX_AUTH_URL" -a "$UAT_ALIAS"
+    - sfdx sfpowerscripts:orchestrator:release -u "$UAT_ALIAS" -p releasedefinitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
   environment:
     name: UAT
   resource_group: UAT
@@ -257,9 +270,8 @@ PROD:
   extends: .release-rules
   needs: ["UAT"]  
   script:
-    - echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./prod_authfile
-    - sfdx auth:sfdxurl:store -f ./prod_authfile -a prod
-    - sfdx sfpowerscripts:orchestrator:release -u prod -p releasedefinitions/releaseDefinition.yml --npm --npmrcpath .npmrc --scope "$CI_PROJECT_NAME" --generatechangelog --branchname changelog 
+    - sfdx auth:sfdxurl:store -f "$PROD_SFDX_AUTH_URL" -a "$PROD_ALIAS"
+    - sfdx sfpowerscripts:orchestrator:release -u "$PROD_ALIAS" -p releasedefinitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
   environment:
     name: PROD
   resource_group: PROD
