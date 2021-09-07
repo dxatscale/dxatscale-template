@@ -217,7 +217,7 @@ ST:
   needs: ["build"] 
   script:
     - sfdx auth:sfdxurl:store -f "$ST_SFDX_AUTH_URL" -a "$ST_ALIAS"
-    - sfdx sfpowerscripts:orchestrator:release -u "$ST_ALIAS" -p release-definitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog -b $CI_COMMIT_BRANCH
+    - sfdx sfpowerscripts:orchestrator:release -u "$ST_ALIAS" -p releasedefinitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog -b $CI_COMMIT_BRANCH
   environment:
     name: ST
   resource_group: ST
