@@ -1,4 +1,13 @@
-## DX@Scale CI/CD Template for Azure Pipelines
+# ██████████   █████ █████  █████████   █████████                     ████
+#░░███░░░░███ ░░███ ░░███  ███░░░░░░   ███░░░░░███                   ░░███
+#  ███   ░░███ ░░███ ███  ░███ ██████ ░███    ░░░   ██████   ██████   ░███   ██████
+# ░███    ░███  ░░█████   ░███░███░███░░█████████  ███░░███ ░░░░░███  ░███  ███░░███
+# ░███    ░███   ███░███  ░███░███░███ ░░░░░░░░███░███ ░░░   ███████  ░███ ░███████
+# ░███    ███   ███ ░░███ ░███░░░ ░███ ███    ░███░███  ███ ███░░███  ░███ ░███░░░
+# ██████████   █████ █████░░█████████ ░░█████████ ░░██████ ░░████████ █████░░██████
+# ░░░░░░░░░░   ░░░░░ ░░░░░  ░░░░░░░░░   ░░░░░░░░░   ░░░░░░   ░░░░░░░░ ░░░░░  ░░░░░░
+# 
+# DX@Scale CI/CD Template for Azure Pipelines
 #-----------------------------------------------------------------------------------------------------------
 # Maintained by @ramesh-karanji(Ramesh Karanji)
 # Follows reference pipeline available at docs.dxatscale.io
@@ -72,7 +81,7 @@ steps:
 
 ## Scratch Org Pool creation  for DEV's
     - script: |
-          sfdx sfpowerscripts:orchestrator:prepare -f config/devpool.json -v devhub --npmrcpath $(npmrc.secureFilePath)
+          sfdx sfpowerscripts:orchestrator:prepare -f config/project-dev-pool-def.json -v devhub --npmrcpath $(npmrc.secureFilePath)
       displayName: 'Prepare a pool of scratch orgs'
 
 
