@@ -14,6 +14,11 @@ name: 'Replenish DEV Pools - Auto Triggered'
 
 on:
   workflow_dispatch:
+   inputs:
+      gitRef:
+        description: "Commit Id from where the pools should be created"
+        required: false
+        default: 'main'
   schedule:
     - cron: '0 14 * * *'
 
@@ -38,6 +43,8 @@ jobs:
     steps:
 
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.inputs.gitRef }}
 
 
       - name: 'Authenticate Dev Hub'
@@ -53,4 +60,12 @@ jobs:
           AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 'Prepare a pool of scratch orgs'
-        run: 'sfdx sfpowerscripts:orchestrator:prepare -f config/devpool.json -v devhub'
+        run: 'sfdx sfpowerscripts:orchestrator:prepare -f config/project-dev-pool-def.json -v devhub'
+        
+              # Publish artifacts
+      - uses: actions/upload-artifact@v2
+        if: ${{ always() }}
+        with:
+          name: scratchorg-logs-pool-ci
+          path: .sfpowerscripts/prepare_logs
+
