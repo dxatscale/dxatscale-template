@@ -108,20 +108,8 @@ stages:
       when: on_success               
     - when: never
 
-# This rule is designed for manual triggers of the pipelines only
+# This rule is designed for manual triggers of the pipeline for releases only
 .run-on-manual:
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-      when: never
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: never     
-    - if: '$TARGETTASKNAME == "manual-delete-fetched-so"'  
-      when: never     
-    - if: '($CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH=~ /^release*$/)'  
-      when: manual  
-
-# This rule is designed for manual triggers for releases
-.release-rules:
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
@@ -243,7 +231,7 @@ ST:
 # This Stage will release package to SIT Environment
 SIT:
   stage: release
-  extends: .release-rules
+  extends: .run-on-manual
   needs: ["ST"]  
   script:
     - sfdx auth:sfdxurl:store -f "$SIT_SFDX_AUTH_URL" -a "$SIT_ALIAS"
@@ -255,7 +243,7 @@ SIT:
 # This Stage will release package to UAT Environment
 UAT:
   stage: release
-  extends: .release-rules
+  extends: .run-on-manual
   needs: ["SIT"]  
   script:
     - sfdx auth:sfdxurl:store -f "$UAT_SFDX_AUTH_URL" -a "$UAT_ALIAS"
@@ -268,7 +256,7 @@ UAT:
  # This Stage will release package to PROD Environment
 PROD:
   stage: release
-  extends: .release-rules
+  extends: .run-on-manual
   needs: ["UAT"]  
   script:
     - sfdx auth:sfdxurl:store -f "$PROD_SFDX_AUTH_URL" -a "$PROD_ALIAS"
