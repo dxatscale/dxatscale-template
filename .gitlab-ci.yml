@@ -162,7 +162,8 @@ analyze-pmd:
     paths:
       # Update the name of the csv output to match above --outputpath
       - pmd-output-core-crm.csv
-    expire_in: 1 week          
+    expire_in: 1 week        
+    when: always
 
 # Validates a package directory to check whether it only contains valid metadata as per metadata coverage  
 validate-package:
@@ -291,7 +292,8 @@ prepare-ci-pool:
     paths:
       - .sfpowerscripts/prepare_logs/
     expire_in: 1 week        
-
+    when: always
+    
 # This job creates the DEV pools
 prepare-dev-pool:
   stage: prepare-dev-pool
@@ -303,7 +305,8 @@ prepare-dev-pool:
     paths:
       - .sfpowerscripts/prepare_logs/
     expire_in: 1 week
-  
+    when: always
+    
 # The following pipeline deletes all the scratch orgs from the pool at a set time, so that pools can be recreated with the latest artifacts
 
 # This job cleans the DEV pools
