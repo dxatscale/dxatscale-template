@@ -54,7 +54,7 @@ jobs:
 
       - name: Authenticate to NPM registry
         run: |
-           echo "@'@${{ github.repository_owner }}':registry=https://npm.pkg.github.com" > ~/.npmrc
+           echo  "@${{ github.repository_owner }}:registry=https://npm.pkg.github.com" > ~/.npmrc
            echo  "_authToken=${AUTH_TOKEN}" >> ~/.npmrc
         env:
           AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
