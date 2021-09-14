@@ -117,7 +117,7 @@ stages:
       when: never     
     - if: '$TARGETTASKNAME == "manual-delete-fetched-so"'  
       when: never     
-    - if: '$CI_COMMIT_BRANCH=~ /^release*$/'  
+    - if: '($CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH=~ /^release*$/)'  
       when: manual        
 
 # This rule is designed for merge requests to trigger off the Validation stages
@@ -169,7 +169,7 @@ validate-source:
   script:
     - echo "Validate source"
     # Match the pool CI pool tag defined in your project-ci-pool-def.json definition file
-    - sfdx sfpowerscripts:orchestrator:validate -p CI1 -v "$DEVHUB_ALIAS" -x
+    - sfdx sfpowerscripts:orchestrator:validate -p ci -v "$DEVHUB_ALIAS" -x
 
 ## 2. This pipeline quickbuilds, deploy to QA, builds and publishes packages to artifact repository
 
@@ -232,7 +232,7 @@ ST:
 SIT:
   stage: release
   extends: .run-on-manual
-  needs: ["ST"]  
+  needs: ["build"]  
   script:
     - sfdx auth:sfdxurl:store -f "$SIT_SFDX_AUTH_URL" -a "$SIT_ALIAS"
     - sfdx sfpowerscripts:orchestrator:release -u "$SIT_ALIAS" -p releasedefinitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
@@ -244,7 +244,7 @@ SIT:
 UAT:
   stage: release
   extends: .run-on-manual
-  needs: ["SIT"]  
+  needs: ["build"]  
   script:
     - sfdx auth:sfdxurl:store -f "$UAT_SFDX_AUTH_URL" -a "$UAT_ALIAS"
     - sfdx sfpowerscripts:orchestrator:release -u "$UAT_ALIAS" -p releasedefinitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
@@ -257,7 +257,7 @@ UAT:
 PROD:
   stage: release
   extends: .run-on-manual
-  needs: ["UAT"]  
+  needs: ["build"]
   script:
     - sfdx auth:sfdxurl:store -f "$PROD_SFDX_AUTH_URL" -a "$PROD_ALIAS"
     - sfdx sfpowerscripts:orchestrator:release -u "$PROD_ALIAS" -p releasedefinitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
@@ -303,7 +303,7 @@ clean-dev-pool:
   rules:
     - if: '$TARGETTASKNAME == "schedule-clean-pool"'    
   script:
-    - sfdx sfpowerscripts:pool:delete -t DEV1 -v "$DEVHUB_ALIAS"
+    - sfdx sfpowerscripts:pool:delete -t dev -v "$DEVHUB_ALIAS"
 
 # This job cleans the CI pools    
 clean-ci-pool:
@@ -311,7 +311,7 @@ clean-ci-pool:
   rules:
     - if: '$TARGETTASKNAME == "schedule-clean-pool"'   
   script:
-      - sfdx sfpowerscripts:pool:delete -t CI1 -v "$DEVHUB_ALIAS" -a   
+      - sfdx sfpowerscripts:pool:delete -t ci -v "$DEVHUB_ALIAS" -a   
 
 # This job deletes a specified fetched developer scratch org by username   
 delete-fetched-so:
