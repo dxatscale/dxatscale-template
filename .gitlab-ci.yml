@@ -222,7 +222,7 @@ ST:
   needs: ["build"] 
   script:
     - sfdx auth:sfdxurl:store -f "$ST_SFDX_AUTH_URL" -a "$ST_ALIAS"
-    - sfdx sfpowerscripts:orchestrator:release -u "$ST_ALIAS" -p releasedefinitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
+    - sfdx sfpowerscripts:orchestrator:release -u "$ST_ALIAS" -p release-definitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
   environment:
     name: ST
   resource_group: ST
@@ -235,7 +235,7 @@ SIT:
   needs: ["build"]  
   script:
     - sfdx auth:sfdxurl:store -f "$SIT_SFDX_AUTH_URL" -a "$SIT_ALIAS"
-    - sfdx sfpowerscripts:orchestrator:release -u "$SIT_ALIAS" -p releasedefinitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
+    - sfdx sfpowerscripts:orchestrator:release -u "$SIT_ALIAS" -p release-definitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
   environment:
     name: SIT
   resource_group: SIT
@@ -247,7 +247,7 @@ UAT:
   needs: ["build"]  
   script:
     - sfdx auth:sfdxurl:store -f "$UAT_SFDX_AUTH_URL" -a "$UAT_ALIAS"
-    - sfdx sfpowerscripts:orchestrator:release -u "$UAT_ALIAS" -p releasedefinitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
+    - sfdx sfpowerscripts:orchestrator:release -u "$UAT_ALIAS" -p release-definitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
   environment:
     name: UAT
   resource_group: UAT
@@ -260,7 +260,7 @@ PROD:
   needs: ["build"]
   script:
     - sfdx auth:sfdxurl:store -f "$PROD_SFDX_AUTH_URL" -a "$PROD_ALIAS"
-    - sfdx sfpowerscripts:orchestrator:release -u "$PROD_ALIAS" -p releasedefinitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
+    - sfdx sfpowerscripts:orchestrator:release -u "$PROD_ALIAS" -p release-definitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
   environment:
     name: PROD
   resource_group: PROD
