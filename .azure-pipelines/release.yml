@@ -47,7 +47,7 @@ parameters:
   - name: releasedefintionPath
     displayName: 'Path to release definition file'
     type: string
-    default: 'releasedefinitions/release-1.0.yml'
+    default: 'release-definitions/release-1.0.yml'
 
 #Custom Variables
 variables:
