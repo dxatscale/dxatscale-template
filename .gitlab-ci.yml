@@ -61,7 +61,15 @@
 # SFPOWERSCRIPTS_NEWRELIC (variable) (optional)
 # SFPOWERSCRIPTS_NEWRELIC_API_KEY (variable, masked) (optional)
 
-image: dxatscale/sfpowerscripts
+default:
+   image: dxatscale/sfpowerscripts
+   # Generate NPM Configuration File for Package Registry Publishing
+   before_script:
+    - sfdx auth:sfdxurl:store -f "$DEVHUB_SFDX_AUTH_URL" -a "$DEVHUB_ALIAS"
+    - echo "${NPM_SCOPE}:registry=https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/packages/npm/" >> .npmrc
+    - echo "//${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}" >> .npmrc 
+    # Below setting is required to push git tags and changelog to the repo      
+    - git remote set-url --push origin https://gitlab-ci-token:${PROJECT_ACCESS_TOKEN}@$CI_SERVER_HOST/$CI_PROJECT_PATH.git
 
 # BUILD_BRANCH defaults to "main" branch for scaled trunk based branching development model
 # TARGETTASKNAME used for scheduling control logic for pipeline execution for scratch org pool creation and cleaning
@@ -73,14 +81,6 @@ variables:
    TARGETTASKNAME:
     value: ""
     description: "The task name to run on demand, please pick ONE from this list: schedule-prepare-ci-pool, schedule-prepare-dev-pool, schedule-clean-pool, schedule-report-so-pool, manual-delete-fetched-so"   
-
-# Generate NPM Configuration File for Package Registry Publishing
-before_script:
-  - sfdx auth:sfdxurl:store -f "$DEVHUB_SFDX_AUTH_URL" -a "$DEVHUB_ALIAS"
-  - echo "${NPM_SCOPE}:registry=https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/packages/npm/" >> .npmrc
-  - echo "//${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}" >> .npmrc 
-# Below setting is required to push git tags and changelog to the repo      
-  - git remote set-url --push origin https://gitlab-ci-token:${PROJECT_ACCESS_TOKEN}@$CI_SERVER_HOST/$CI_PROJECT_PATH.git
 
 stages:
    - analyze
