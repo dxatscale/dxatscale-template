@@ -219,7 +219,6 @@ build:
 ST:
   stage: release
   extends: .run-on-manual
-  needs: ["build"] 
   script:
     - sfdx auth:sfdxurl:store -f "$ST_SFDX_AUTH_URL" -a "$ST_ALIAS"
     - sfdx sfpowerscripts:orchestrator:release -u "$ST_ALIAS" -p release-definitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
@@ -232,7 +231,6 @@ ST:
 SIT:
   stage: release
   extends: .run-on-manual
-  needs: ["build"]  
   script:
     - sfdx auth:sfdxurl:store -f "$SIT_SFDX_AUTH_URL" -a "$SIT_ALIAS"
     - sfdx sfpowerscripts:orchestrator:release -u "$SIT_ALIAS" -p release-definitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
@@ -244,7 +242,6 @@ SIT:
 UAT:
   stage: release
   extends: .run-on-manual
-  needs: ["build"]  
   script:
     - sfdx auth:sfdxurl:store -f "$UAT_SFDX_AUTH_URL" -a "$UAT_ALIAS"
     - sfdx sfpowerscripts:orchestrator:release -u "$UAT_ALIAS" -p release-definitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
@@ -252,12 +249,10 @@ UAT:
     name: UAT
   resource_group: UAT
 
-
  # This Stage will release package to PROD Environment
 PROD:
   stage: release
   extends: .run-on-manual
-  needs: ["build"]
   script:
     - sfdx auth:sfdxurl:store -f "$PROD_SFDX_AUTH_URL" -a "$PROD_ALIAS"
     - sfdx sfpowerscripts:orchestrator:release -u "$PROD_ALIAS" -p release-definitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
