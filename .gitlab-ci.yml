@@ -80,7 +80,7 @@ variables:
      description: "Username of the scratchOrg to be deleted, not aliases, e.g. test-xasdasd@example.com"
    TARGETTASKNAME:
     value: ""
-    description: "The task name to run on demand, please pick ONE from this list: schedule-prepare-ci-pool, schedule-prepare-dev-pool, schedule-clean-pool, schedule-report-so-pool, manual-delete-fetched-so"   
+    description: "The task name to run on demand, please pick ONE from this list: schedule-prepare-ci-pool, schedule-prepare-dev-pool, schedule-clean-pool, schedule-report-so-pool, manual-delete-fetched-so, manual-release"   
 
 stages:
    - analyze
@@ -103,7 +103,9 @@ stages:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
       when: never         
     - if: '$TARGETTASKNAME == "manual-delete-fetched-so"'  
-      when: never        
+      when: never      
+    - if: '$TARGETTASKNAME == "manual-release"'  
+      when: never           
     - if: '($CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH=~ /^release*$/)' 
       when: on_success               
     - when: never
@@ -117,7 +119,7 @@ stages:
       when: never     
     - if: '$TARGETTASKNAME == "manual-delete-fetched-so"'  
       when: never     
-    - if: '($CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH=~ /^release*$/)'  
+    - if: '($CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH=~ /^release*$/) && $TARGETTASKNAME == "manual-release"'      
       when: manual        
 
 # This rule is designed for merge requests to trigger off the Validation stages
@@ -231,6 +233,7 @@ ST:
 SIT:
   stage: release
   extends: .run-on-manual
+  needs: ["SIT"]
   script:
     - sfdx auth:sfdxurl:store -f "$SIT_SFDX_AUTH_URL" -a "$SIT_ALIAS"
     - sfdx sfpowerscripts:orchestrator:release -u "$SIT_ALIAS" -p release-definitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
@@ -242,6 +245,7 @@ SIT:
 UAT:
   stage: release
   extends: .run-on-manual
+  needs: ["SIT"]
   script:
     - sfdx auth:sfdxurl:store -f "$UAT_SFDX_AUTH_URL" -a "$UAT_ALIAS"
     - sfdx sfpowerscripts:orchestrator:release -u "$UAT_ALIAS" -p release-definitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
@@ -249,10 +253,11 @@ UAT:
     name: UAT
   resource_group: UAT
 
- # This Stage will release package to PROD Environment
+# This Stage will release package to PROD Environment
 PROD:
   stage: release
   extends: .run-on-manual
+  needs: ["UAT"]
   script:
     - sfdx auth:sfdxurl:store -f "$PROD_SFDX_AUTH_URL" -a "$PROD_ALIAS"
     - sfdx sfpowerscripts:orchestrator:release -u "$PROD_ALIAS" -p release-definitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
