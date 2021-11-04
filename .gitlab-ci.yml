@@ -233,7 +233,7 @@ ST:
 SIT:
   stage: release
   extends: .run-on-manual
-  needs: ["SIT"]
+  needs: ["ST"]
   script:
     - sfdx auth:sfdxurl:store -f "$SIT_SFDX_AUTH_URL" -a "$SIT_ALIAS"
     - sfdx sfpowerscripts:orchestrator:release -u "$SIT_ALIAS" -p release-definitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
