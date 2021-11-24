@@ -209,7 +209,7 @@ build:
   script:
     - echo "Build Production Ready Packages and Publish"
     - sfdx sfpowerscripts:orchestrator:build -v "$DEVHUB_ALIAS" --branch "$BUILD_BRANCH" --buildnumber $CI_PIPELINE_ID --diffcheck
-    - sfdx sfpowerscripts:orchestrator:publish -v "$DEVHUB_ALIAS" --npm --npmtag main --npmrcpath .npmrc --scope "$NPM_SCOPE" --gittag --pushgittag
+    - sfdx sfpowerscripts:orchestrator:publish -v "$DEVHUB_ALIAS" --npm  --npmrcpath .npmrc --scope "$NPM_SCOPE" --gittag --pushgittag
   environment:
     name: build-env
   resource_group: build
