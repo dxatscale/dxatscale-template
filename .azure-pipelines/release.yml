@@ -144,11 +144,11 @@ stages:
       lockBehavior: sequential
       displayName: UAT
       dependsOn: []
-      condition: eq(variables['Build.SourceBranch'], 'refs/heads/release/')
+      condition: contains(variables['Build.SourceBranch'], 'refs/heads/release/')
       jobs:
           - deployment: release_uat
             environment: uat
-            displayName: 'release to prod' 
+            displayName: 'release to uat' 
             pool:
                   vmImage: 'ubuntu-latest'
             container: dxatscale/sfpowerscripts:latest
@@ -187,7 +187,7 @@ stages:
       lockBehavior: sequential
       displayName: PROD
       dependsOn: UAT
-      condition: and(eq(variables['Build.SourceBranch'], 'refs/heads/release/'),succeeded())
+      condition: and(contains(variables['Build.SourceBranch'], 'refs/heads/release/'),succeeded())
       jobs:
           - deployment: release_prod
             environment: prod

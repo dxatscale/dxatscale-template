@@ -61,7 +61,7 @@ jobs:
   SIT:
     runs-on: ubuntu-latest
     container: dxatscale/sfpowerscripts
-    if: github.ref == 'refs/heads/main' || 'refs/heads/release/*'
+    if: github.ref == 'refs/heads/main' || contains(github.ref,'refs/heads/release')
     environment:
       name: SIT
     needs: ST  
