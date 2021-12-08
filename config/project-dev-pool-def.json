@@ -12,8 +12,7 @@
     "installAll": true,
     "fetchArtifacts": {
         "npm": {
-          "scope": "@org-name",
-          "npmtag": "main"
+          "scope": "@org-name"
         }
       }
    
