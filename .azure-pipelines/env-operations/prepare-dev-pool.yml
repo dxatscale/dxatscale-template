@@ -63,6 +63,11 @@ variables:
   - group: CICD
 
 steps:    
+ 
+# Need full checkout for tags 
+    - checkout: self
+      persistCredentials: true
+
 # Authenticate DevHub 
     - script: |
           echo $(DEVHUB_SFDX_AUTH_URL) > ./authfile
