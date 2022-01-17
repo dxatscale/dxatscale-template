@@ -74,7 +74,6 @@ default:
 # BUILD_BRANCH defaults to "main" branch for scaled trunk based branching development model
 # TARGETTASKNAME used for scheduling control logic for pipeline execution for scratch org pool creation and cleaning
 variables:
-   BUILD_BRANCH: main
    SCRATCH_ORG_USERNAME:
      value: ""
      description: "Username of the scratchOrg to be deleted, not aliases, e.g. test-xasdasd@example.com"
@@ -181,7 +180,7 @@ quickbuild:
   stage: quickbuild 
   script:
     - echo "Quick Build the packages"
-    - sfdx sfpowerscripts:orchestrator:quickbuild -v "$DEVHUB_ALIAS" --branch "$BUILD_BRANCH" --buildnumber $CI_PIPELINE_ID --diffcheck
+    - sfdx sfpowerscripts:orchestrator:quickbuild -v "$DEVHUB_ALIAS" --branch "$CI_COMMIT_BRANCH" --buildnumber $CI_PIPELINE_ID --diffcheck
   artifacts:
     paths:
       - artifacts/
@@ -208,7 +207,7 @@ build:
   needs: ["deploy"]  
   script:
     - echo "Build Production Ready Packages and Publish"
-    - sfdx sfpowerscripts:orchestrator:build -v "$DEVHUB_ALIAS" --branch "$BUILD_BRANCH" --buildnumber $CI_PIPELINE_ID --diffcheck
+    - sfdx sfpowerscripts:orchestrator:build -v "$DEVHUB_ALIAS" --branch "$CI_COMMIT_BRANCH" --buildnumber $CI_PIPELINE_ID --diffcheck
     - sfdx sfpowerscripts:orchestrator:publish -v "$DEVHUB_ALIAS" --npm  --npmrcpath .npmrc --scope "$NPM_SCOPE" --gittag --pushgittag
   environment:
     name: build-env
