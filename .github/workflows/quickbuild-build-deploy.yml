@@ -123,16 +123,13 @@ jobs:
           name: build-artifacts
           path: artifacts
 
-      - name: Authenticate to NPM registry
-        run: |
-           echo "@${{ github.repository_owner }}:registry=https://npm.pkg.github.com" > ~/.npmrc
-           echo  "_authToken=${AUTH_TOKEN}" >> ~/.npmrc
-        env:
-          AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
+      # Authenticate to npm
+      - uses: actions/setup-node@v3
+        with:
+         registry-url: 'https://npm.pkg.github.com'
 
       - name: Publish
         run: |
           sfdx sfpowerscripts:orchestrator:publish -d artifacts --npm --scope @${{ github.repository_owner }}  --gittag --pushgittag
-
-
+        env:
+         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
