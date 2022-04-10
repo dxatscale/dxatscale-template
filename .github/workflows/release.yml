@@ -33,7 +33,7 @@ on:
 jobs:
   ST:
     runs-on: ubuntu-latest
-    container: dxatscale/sfpowerscripts
+    container: ghcr.io/dxatscale/sfpowerscripts
     environment:
       name: ST
     steps:
@@ -59,7 +59,7 @@ jobs:
 
   SIT:
     runs-on: ubuntu-latest
-    container: dxatscale/sfpowerscripts
+    container: ghcr.io/dxatscale/sfpowerscripts
     if: github.ref == 'refs/heads/main' || contains(github.ref,'refs/heads/release')
     environment:
       name: SIT
@@ -90,7 +90,7 @@ jobs:
 
   UAT:
     runs-on: ubuntu-latest
-    container: dxatscale/sfpowerscripts
+    container: ghcr.io/dxatscale/sfpowerscripts
     if: contains(github.ref,'refs/heads/release')
     environment:
       name: UAT
@@ -121,7 +121,7 @@ jobs:
 
   PROD:
     runs-on: ubuntu-latest
-    container: dxatscale/sfpowerscripts
+    container: ghcr.io/dxatscale/sfpowerscripts
     if: contains(github.ref,'refs/heads/release')
     environment:
       name: PROD

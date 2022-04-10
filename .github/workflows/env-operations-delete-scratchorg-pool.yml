@@ -36,7 +36,7 @@ jobs:
   delete-scracthorg:
     name: 'Return a used scratch org to the pool ${{ github.event.inputs.username }}'
     runs-on: ubuntu-latest
-    container: dxatscale/sfpowerscripts
+    container: ghcr.io/dxatscale/sfpowerscripts
 
     steps:
 

@@ -64,7 +64,7 @@ stages:
 # Runs build on the mentioned Image                
             pool:
                 vmImage: 'ubuntu-latest'
-            container: dxatscale/sfpowerscripts:latest
+            container: ghcr.io/dxatscale/sfpowerscripts:latest
 
             steps:
                 - checkout: self
@@ -96,7 +96,7 @@ stages:
             displayName: 'Deploy the packages'
             pool:
                 vmImage: 'ubuntu-latest'
-            container: dxatscale/sfpowerscripts:latest
+            container: ghcr.io/dxatscale/sfpowerscripts:latest
             steps:
                 - checkout: self
 
@@ -125,7 +125,7 @@ stages:
             displayName: 'Build the packages'          
             pool:
                 vmImage: 'ubuntu-latest'
-            container: dxatscale/sfpowerscripts:latest
+            container: ghcr.io/dxatscale/sfpowerscripts:latest
             steps:
                 - checkout: self
                   persistCredentials: true
