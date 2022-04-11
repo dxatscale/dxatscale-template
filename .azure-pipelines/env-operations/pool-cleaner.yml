@@ -62,8 +62,8 @@ variables:
 # Drop only unused scratch orgs in the pool for recycling, else users will loose their existing scratch orgs
 jobs:
   - job: 
-#The docker container contains sfpowerscripts and the dependencies it needs to run, # refer to https://hub.docker.com/r/dxatscale/sfpowerscripts                  
-    container: dxatscale/sfpowerscripts:latest
+#The docker container contains sfpowerscripts and the dependencies it needs to run, # refer to https://github.com/orgs/dxatscale/packages/container/package/sfpowerscripts                  
+    container: ghcr.io/dxatscale/sfpowerscripts:latest
     displayName: "Delete Dev Pool"
     steps:
     
@@ -81,8 +81,8 @@ jobs:
 
 # Drop all scratch orgs in  the case of CI pool, its better to recreate every time
   - job: 
-#The docker container contains sfpowerscripts and the dependencies it needs to run, # refer to https://hub.docker.com/r/dxatscale/sfpowerscripts                  
-    container: dxatscale/sfpowerscripts:latest
+#The docker container contains sfpowerscripts and the dependencies it needs to run, # refer to https://github.com/orgs/dxatscale/packages/container/package/sfpowerscripts                  
+    container: ghcr.io/dxatscale/sfpowerscripts:latest
     displayName: "Delete CI Pool"
     dependsOn: []
     steps:

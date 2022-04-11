@@ -38,7 +38,7 @@ jobs:
   quickbuild:
     name: 'Quickbuild packages'
     runs-on: ubuntu-latest
-    container: dxatscale/sfpowerscripts
+    container: ghcr.io/dxatscale/sfpowerscripts
     if: github.ref == 'refs/heads/main' 
     steps:
       - uses: actions/checkout@v2
@@ -64,7 +64,7 @@ jobs:
   deploy:
     name: 'Deploy to Dev'
     runs-on: ubuntu-latest
-    container: dxatscale/sfpowerscripts
+    container: ghcr.io/dxatscale/sfpowerscripts
     needs: quickbuild
     if: github.ref == 'refs/heads/main'
     environment:
@@ -98,7 +98,7 @@ jobs:
   buildAndPublish:
     name: 'Build and Publish'
     runs-on: ubuntu-latest
-    container: dxatscale/sfpowerscripts
+    container: ghcr.io/dxatscale/sfpowerscripts
     needs: deploy
     concurrency: build 
     if: github.ref == 'refs/heads/main' || 'refs/heads/release/*'

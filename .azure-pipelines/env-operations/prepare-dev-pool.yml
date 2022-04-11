@@ -55,8 +55,8 @@ schedules:
 pool:
     vmImage: 'ubuntu-latest'
 
-#The docker container contains sfpowerscripts and the dependencies it needs to run, # refer to https://hub.docker.com/r/dxatscale/sfpowerscripts                
-container: dxatscale/sfpowerscripts:latest
+#The docker container contains sfpowerscripts and the dependencies it needs to run, # refer to https://github.com/orgs/dxatscale/packages/container/package/sfpowerscripts                
+container: ghcr.io/dxatscale/sfpowerscripts:latest
 
 #Custom Variables
 variables:

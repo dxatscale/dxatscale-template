@@ -24,7 +24,7 @@
 # To know more on dxatscale, visit https://docs.dxatscale.io
 # To know more on sfpowerscripts, visit https://sfpowerscripts.dxatscale.io/
 # To know more on sfpowerkit, visit https://github.com/Accenture/sfpowerkit
-# To know more on Dockerfile, visit  https://github.com/dxatscale/docker-sfpowerscripts/blob/main/Dockerfile
+# To know more on Dockerfile, visit  https://github.com/Accenture/sfpowerscripts/blob/main/dockerfiles
 
 # Configure the following CI/CD environment variables and/or file prior to running the pipleine
 #------------------------------------------------------------------------------------------------------------
@@ -62,7 +62,7 @@
 # SFPOWERSCRIPTS_NEWRELIC_API_KEY (variable, masked) (optional)
 
 default:
-   image: dxatscale/sfpowerscripts
+   image: ghcr.io/dxatscale/sfpowerscripts
    # Generate NPM Configuration File for Package Registry Publishing
    before_script:
     - sfdx auth:sfdxurl:store -f "$DEVHUB_SFDX_AUTH_URL" -a "$DEVHUB_ALIAS"

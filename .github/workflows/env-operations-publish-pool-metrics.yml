@@ -31,7 +31,7 @@ jobs:
   publish:
     name: 'Publish Metrics'
     runs-on: ubuntu-latest
-    container: dxatscale/sfpowerscripts
+    container: ghcr.io/dxatscale/sfpowerscripts
 
     steps:
     

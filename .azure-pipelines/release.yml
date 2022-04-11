@@ -66,7 +66,7 @@ stages:
             displayName: 'release to st'                      
             pool:
                 vmImage: 'ubuntu-latest'
-            container: dxatscale/sfpowerscripts:latest
+            container: ghcr.io/dxatscale/sfpowerscripts:latest
             strategy:
              runOnce:
                deploy:
@@ -109,7 +109,7 @@ stages:
             displayName: 'release to sit'                       
             pool:
                 vmImage: 'ubuntu-latest'
-            container: dxatscale/sfpowerscripts:latest
+            container: ghcr.io/dxatscale/sfpowerscripts:latest
             strategy:
              runOnce:
                deploy:
@@ -151,7 +151,7 @@ stages:
             displayName: 'release to uat' 
             pool:
                   vmImage: 'ubuntu-latest'
-            container: dxatscale/sfpowerscripts:latest
+            container: ghcr.io/dxatscale/sfpowerscripts:latest
             strategy:
              runOnce:
               deploy:
@@ -194,7 +194,7 @@ stages:
             displayName: 'release to prod' 
             pool:
                   vmImage: 'ubuntu-latest'
-            container: dxatscale/sfpowerscripts:latest
+            container: ghcr.io/dxatscale/sfpowerscripts:latest
             strategy:
              runOnce:
               deploy:

@@ -37,7 +37,7 @@ jobs:
   validate:
     name: 'Validate Changed Packages'
     runs-on: ubuntu-latest
-    container: dxatscale/sfpowerscripts
+    container: ghcr.io/dxatscale/sfpowerscripts
 
     steps:
       - uses: actions/checkout@v2
@@ -58,7 +58,7 @@ jobs:
   static:
     name: 'static-analysis-of-Apex-classes-using-PMD'
     runs-on: ubuntu-latest
-    container: dxatscale/sfpowerscripts
+    container: ghcr.io/dxatscale/sfpowerscripts
     steps:
       - uses: actions/checkout@v2
         with:
@@ -72,7 +72,7 @@ jobs:
   validate-package-coverage:
     name: 'validate metadata coverage for unlocked packages'
     runs-on: ubuntu-latest
-    container: dxatscale/sfpowerscripts
+    container: ghcr.io/dxatscale/sfpowerscripts
     steps:
       - uses: actions/checkout@v2
         with:

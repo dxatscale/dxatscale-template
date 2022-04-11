@@ -35,7 +35,7 @@ jobs:
   clean-pool-dev:
     name: 'Clean Dev Pool'
     runs-on: ubuntu-latest
-    container: dxatscale/sfpowerscripts
+    container: ghcr.io/dxatscale/sfpowerscripts
 
     steps:
 
@@ -54,7 +54,7 @@ jobs:
   clean-pool-ci:
     name: 'Clean CI Pool'
     runs-on: ubuntu-latest
-    container: dxatscale/sfpowerscripts
+    container: ghcr.io/dxatscale/sfpowerscripts
 
  
     steps:

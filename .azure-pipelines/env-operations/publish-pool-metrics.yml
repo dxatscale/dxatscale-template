@@ -63,7 +63,7 @@ variables:
 
 jobs:
   - job:                  
-    container: dxatscale/sfpowerscripts:latest
+    container: ghcr.io/dxatscale/sfpowerscripts:latest
     displayName: "Publish Pool Metrics"
     steps:
     
