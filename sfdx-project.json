@@ -66,16 +66,7 @@
         },
         {
             "path": "./src-temp",
-            "package": "src-temp",
-            "versionName": "Version 1.0.0",
-            "versionNumber": "1.0.0.0",
-            "default": true,
-            "ignoreOnStage": [
-                "prepare",
-                "validate",
-                "quickbuild",
-                "build"
-            ]
+            "default": true
         }
     ],
     "namespace": "",
