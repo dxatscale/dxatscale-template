@@ -68,6 +68,7 @@ stages:
 
             steps:
                 - checkout: self
+                  fetchDepth: 0
 
                 - script: |
                         echo $(DEVHUB_SFDX_AUTH_URL) > ./authfile
@@ -99,6 +100,7 @@ stages:
             container: ghcr.io/dxatscale/sfpowerscripts:latest
             steps:
                 - checkout: self
+                  fetchDepth: 0
 
                 - task: DownloadBuildArtifacts@0
                   inputs:
@@ -128,6 +130,7 @@ stages:
             container: ghcr.io/dxatscale/sfpowerscripts:latest
             steps:
                 - checkout: self
+                  fetchDepth: 0
                   persistCredentials: true
     
                 - script: |
