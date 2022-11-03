@@ -72,6 +72,7 @@ stages:
                deploy:
                 steps:
                  - checkout: self
+                   fetchDepth: 0
                    persistCredentials: true
 
 
@@ -115,6 +116,7 @@ stages:
                deploy:
                 steps:
                  - checkout: self
+                   fetchDepth: 0
                    persistCredentials: true
 
                  - task: DownloadSecureFile@1
@@ -157,6 +159,7 @@ stages:
               deploy:
                 steps:
                 - checkout: self
+                  fetchDepth: 0
                   persistCredentials: true
 
                 - task: DownloadSecureFile@1
@@ -200,6 +203,7 @@ stages:
               deploy:
                 steps:
                 - checkout: self
+                  fetchDepth: 0
                   persistCredentials: true
 
                 - task: DownloadSecureFile@1

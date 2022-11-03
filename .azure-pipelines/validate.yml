@@ -78,6 +78,7 @@ stages:
             steps:
 
             - checkout: self
+              fetchDepth: 0
               persistCredentials: true
 
 #This task is used to run a static analysis of the apex classes and triggers using PMD      
@@ -112,6 +113,7 @@ stages:
             steps:
 
             - checkout: self
+              fetchDepth: 0
               persistCredentials: true
 
 # Authenticate DevHub                
