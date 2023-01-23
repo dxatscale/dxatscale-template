@@ -7,18 +7,26 @@ clearSetup(){
     exit 1
 }
 
-# Echo message in case the argument fo $1 is not given
+# Echos a message in case the argument fo $1 is not given
 if [ -z $1 ]
   then
     echo "Please add argument for the branch name. Recommended format is <initials of developer>-<User story id>"
     exit 1
 fi
 
-# Checkout to new feature branch and fetch the scratch Org from the dev Pool
-git checkout main && git pull origin main && git checkout -b feature/$1 || {
+# This is command should be then the real command used when the PR is merged.
+# Checkouts to new feature branch and fetch the scratch Org from the dev Pool
+#git checkout main && git pull origin main && git checkout -b feature/$1 || {
+#    echo "Something went wrong. Make a screenshot from the console and send to your admin."
+#    exit 1
+#}
+
+# Remove this command (25-28) after testing the PR
+git checkout -b feature/$1 || {
     echo "Something went wrong. Make a screenshot from the console and send to your admin."
     exit 1
 }
+
 # Adds permission to the sub-scripts that fetches the scratch Org
 chmod +x ./scripts/fetchScratchOrg.sh
 
