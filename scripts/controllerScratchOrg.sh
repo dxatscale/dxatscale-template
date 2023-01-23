@@ -19,7 +19,12 @@ git checkout main && git pull origin main && git checkout -b feature/$1 || {
     echo "Something went wrong. Make a screenshot from the console and send to your admin."
     exit 1
 }
+# Adds permission to the sub-scripts that fetches the scratch Org
+chmod +x ./scripts/fetchScratchOrg.sh
+
+# Calls the sub-script
 bash ./scripts/fetchScratchOrg.sh $1 ||
     clearSetup $1
-    
+
+# Publishes the new branch    
 git push --set-upstream origin feature/$1
