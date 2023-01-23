@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env sh
 # Checks if the feature branch name is entered or not by the user
 if [ -z $1 ]
   then
