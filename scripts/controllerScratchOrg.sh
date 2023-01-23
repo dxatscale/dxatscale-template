@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env sh
 # Function to delete scratchOrg and feature branch in case of failure
 clearSetup(){
     git checkout main
