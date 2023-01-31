@@ -93,6 +93,7 @@ steps:
 
 #Publish logs to artifacts             
     - task: PublishBuildArtifacts@1
+      condition: always()
       inputs:
             pathToPublish: .sfpowerscripts/prepare_logs/
             artifactName: PrepareLogs
