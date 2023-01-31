@@ -3,7 +3,7 @@ This folder houses the export for Datadog Dashboard that captures CI/CD performa
 Importing Dashboard to Datadog
 
 
-1. Goto DataDog, and Click on Import and import dashboard to NewRelic
+1. Goto DataDog, and Click on Import and import dashboard 
 2. Set your pipelines environment variables with the following
 ``` 
   SFPOWERSCRIPTS_DATADOG: 'true'
