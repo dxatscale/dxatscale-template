@@ -1,0 +1,47 @@
+{
+  // Fetches a scratch org from dev pool
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Fetch new Scratch Org 🚀",
+      "type": "shell",
+      "command": "./scripts/controllerScratchOrg.sh ${input:UserInitials}-${input:TicketNumber} ",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      }
+    },
+    // Pulls changes from the scratch org (deafult org)
+    {
+      "label": "Pull your changes from the Scratch Org ⬅️",
+      "type": "shell",
+      "command": "sfdx force:source:pull -f -w 100",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "UserInitials",
+      "description": "What are your initials?",
+      "type": "promptString"
+    },
+    {
+      "id": "TicketNumber",
+      "description": "What is the JIRA user story number?",
+      "type": "promptString"
+    }
+  ]
+}
