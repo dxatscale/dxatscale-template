@@ -17,7 +17,6 @@ on:
   push:
     branches:
       - main
-      - release/**
 
 
   workflow_dispatch:
@@ -101,7 +100,7 @@ jobs:
     container: ghcr.io/dxatscale/sfpowerscripts
     needs: deploy
     concurrency: build 
-    if: github.ref == 'refs/heads/main' || 'refs/heads/release/*'
+    if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v2
         with:
