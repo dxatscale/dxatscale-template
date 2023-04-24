@@ -1,6 +1,6 @@
 <form theme="light">
   <label>Salesforce CI/CD Package Overview</label>
-  <description>This dahsboards contains package informations</description>
+  <description>This dashboard contains package informations</description>
   <row>
     <panel>
       <title>PACKAGE STATISTICS</title>
