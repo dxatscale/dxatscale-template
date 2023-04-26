@@ -1,0 +1,216 @@
+<form>
+    <label>Salesforce CI/CD Performance</label>
+    <fieldset submitButton="false">
+        <input type="time" token="time_tok">
+            <label>Time</label>
+            <default>
+                <earliest>-24h@h</earliest>
+                <latest>now</latest>
+            </default>
+        </input>
+    </fieldset>
+    <row>
+        <panel>
+            <title>Time Taken to Create Pools</title>
+            <single>
+                <search>
+                    <query>index="xxx" source="sfpowerscripts" metric="sfpowerscripts.*"
+                        metric="sfpowerscripts.prepare.duration"
+                        | stats perc95(value) as Mins
+                        | eval Mins=ROUND(Mins/1000/60,3)
+                        | rename Mins as "Time Taken to Create Pools"</query>
+                    <earliest>$time_tok.earliest$</earliest>
+                    <latest>$time_tok.latest$</latest>
+                </search>
+                <option name="colorMode">block</option>
+                <option name="drilldown">none</option>
+                <option name="numberPrecision">0.000</option>
+                <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
+                <option name="rangeValues">[180]</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="unit">Mins</option>
+                <option name="useColors">1</option>
+            </single>
+        </panel>
+        <panel>
+            <title>Average Time Taken for PR Validation</title>
+            <single>
+                <search>
+                    <query>index="xxx" source="sfpowerscripts" metric="sfpowerscripts.*"
+                        metric="sfpowerscripts.validate.duration"
+                        | stats avg(value) as Mins
+                        | eval Mins=ROUND(Mins/1000/60,3)
+                        | rename Mins as "Average Time Taken for PR Validation query"</query>
+                    <earliest>$time_tok.earliest$</earliest>
+                    <latest>$time_tok.latest$</latest>
+                </search>
+                <option name="colorMode">block</option>
+                <option name="drilldown">none</option>
+                <option name="numberPrecision">0.000</option>
+                <option name="rangeColors">["0x53a051","0xf8be34","0xdc4e41"]</option>
+                <option name="rangeValues">[20,45]</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="useColors">1</option>
+            </single>
+        </panel>
+        <panel>
+            <title>Total Number of Scheduled Builds</title>
+            <single>
+                <search>
+                    <query>index="xxx" source="sfpowerscripts" metric="sfpowerscripts.*"
+                        metric="sfpowerscripts.build.scheduled"
+                        | stats c as BUILDS</query>
+                    <earliest>$time_tok.earliest$</earliest>
+                    <latest>$time_tok.latest$</latest>
+                </search>
+                <option name="drilldown">none</option>
+            </single>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>Total Number of PR Validaton Runs</title>
+            <single>
+                <title>NO FAILED DATA</title>
+                <search>
+                    <query>index="xxx" source="sfpowerscripts" metric="sfpowerscripts.*"
+                        metric="sfpowerscripts.validate.succeeded" OR
+                        metric="sfpowerscripts.validate.failed"
+                        | stats c as Runs</query>
+                    <earliest>$time_tok.earliest$</earliest>
+                    <latest>$time_tok.latest$</latest>
+                </search>
+                <option name="drilldown">none</option>
+            </single>
+        </panel>
+        <panel>
+            <title>Percentage of Successful PR Validation Runs</title>
+            <single>
+                <search>
+                    <query>index="xxx" source="sfpowerscripts"
+                        metric="sfpowerscripts.validate.succeeded" OR
+                        metric="sfpowerscripts.validate.failed"
+                        | eval metricsucceeded=if(metric="sfpowerscripts.validate.succeeded", 1,0)
+                        | eval metricfailed=if(metric="sfpowerscripts.validate.failed", 1,0)
+                        | stats sum(metricsucceeded) as count1 sum(metricfailed) as coount2
+                        | eval Combi=metricsucceeded+metricfailed
+                        | eval Test=(metricsucceeded/Combi)*100</query>
+                    <earliest>$time_tok.earliest$</earliest>
+                    <latest>$time_tok.latest$</latest>
+                </search>
+                <option name="drilldown">none</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <title>Avg. Build Duration</title>
+            <single>
+                <search>
+                    <query>index="xxx" source="sfpowerscripts" metric="sfpowerscripts.*"
+                        metric="sfpowerscripts.build.duration" tags.is_diffcheck_enabled="true" AND
+                        tags.stage="build"
+                        | stats avg(value) as Mins
+                        | eval Mins=ROUND(Mins/1000/60,3)</query>
+                    <earliest>$time_tok.earliest$</earliest>
+                    <latest>$time_tok.latest$</latest>
+                </search>
+                <option name="drilldown">none</option>
+                <option name="numberPrecision">0.000</option>
+                <option name="rangeColors">["0x53a051","0x0877a6","0xf8be34","0xf1813f","0xdc4e41"]</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <title>Percentage of Successful Builds</title>
+            <single>
+                <search>
+                    <query>index="xxx" source="sfpowerscripts"
+                        metric="sfpowerscripts.build.succeeded" OR
+                        metric="sfpowerscripts.build.scheduled"
+                        | stats c as coutof by metric
+                        | transpose header_field=metric
+                        | eval
+                        Head=('sfpowerscripts.build.succeeded'/'sfpowerscripts.build.scheduled')*100
+                        | fields Head</query>
+                    <earliest>$time_tok.earliest$</earliest>
+                    <latest>$time_tok.latest$</latest>
+                </search>
+                <option name="drilldown">none</option>
+                <option name="numberPrecision">0.00</option>
+                <option name="rangeColors">["0x53a051","0x0877a6","0xf8be34","0xf1813f","0xdc4e41"]</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="unit">%</option>
+            </single>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>Number of Scheduled Releases</title>
+            <single>
+                <search>
+                    <query>index="xxx" source="sfpowerscripts"
+                        metric="sfpowerscripts.release.scheduled"
+                        | stats c as Releases</query>
+                    <earliest>$time_tok.earliest$</earliest>
+                    <latest>$time_tok.latest$</latest>
+                </search>
+                <option name="drilldown">none</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <title>Avg. Time Taken for Release</title>
+            <single>
+                <search>
+                    <query>index="xxx" source="sfpowerscripts" metric="sfpowerscripts.*"
+                        metric="sfpowerscripts.release.duration"
+                        | stats avg(value) as value
+                        | eval value=ROUND(value/1000/60,3)
+                        | rename value as "Avg. Time Taken for Release"</query>
+                    <earliest>$time_tok.earliest$</earliest>
+                    <latest>$time_tok.latest$</latest>
+                </search>
+                <option name="drilldown">none</option>
+            </single>
+        </panel>
+        <panel>
+            <title>Percentage of Successfull Deployment</title>
+            <single>
+                <search>
+                    <query>index="xxx" source="sfpowerscripts"
+                        metric="sfpowerscripts.build.succeeded" OR
+                        metric="sfpowerscripts.release.scheduled"
+                        | stats c as coutof by metric
+                        | transpose header_field=metric
+                        | eval
+                        Head=('sfpowerscripts.build.succeeded'/'sfpowerscripts.release.scheduled')*100
+                        | fields Head</query>
+                    <earliest>$time_tok.earliest$</earliest>
+                    <latest>$time_tok.latest$</latest>
+                </search>
+                <option name="drilldown">none</option>
+                <option name="numberPrecision">0.00</option>
+                <option name="rangeColors">["0x53a051","0x0877a6","0xf8be34","0xf1813f","0xdc4e41"]</option>
+                <option name="unit">%</option>
+                <option name="unitPosition">after</option>
+            </single>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>Timechart</title>
+            <chart>
+                <search>
+                    <query>index="xxx" source="sfpowerscripts" metric="sfpowerscripts.*"
+                        metric="sfpowerscripts.validate.duration"
+                        | eval value=ROUND(value/1000/60,3)
+                        | timechart avg(value) as Mins</query>
+                    <earliest>$time_tok.earliest$</earliest>
+                    <latest>$time_tok.latest$</latest>
+                </search>
+                <option name="charting.chart">line</option>
+                <option name="charting.drilldown">none</option>
+            </chart>
+        </panel>
+    </row>
+</form>

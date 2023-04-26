@@ -1,0 +1,45 @@
+<form theme="light">
+    <label>Salesforce CI/CD Package Overview</label>
+    <description>This dashboard contains package informations</description>
+    <row>
+        <panel>
+            <title>PACKAGE STATISTICS</title>
+            <table>
+                <search>
+                    <query>index="xxx" source="sfpowerscripts" metric="sfpowerscripts.*"
+                        | eval metric=replace(metric, "sfpowerscripts.package.", "")
+                        | eval metric=replace(metric, "sfpowerscripts.apextest.", "")
+                        | chart latest(value) over tags.package by metric
+                        | fillnull value="N/A"
+                        | eval
+                        installation.elapsed_time=if('installation.elapsed_time'!="N/A",Round((('installation.elapsed_time'/1000)/60),2),"N/A")
+                        | eval
+                        tests.ran=if('tests.ran'!="N/A",Round((('tests.ran'/1000)/60),2),"N/A")
+                        | eval
+                        elapsed.time=if('elapsed.time'!="N/A",Round((('elapsed.time'/1000)/60),2),"N/A")
+                        | eval
+                        testtotal.time=if('testtotal.time'!="N/A",Round((('testtotal.time'/1000)/60),2),"N/A")
+                        | table "tags.package" "metadatacount" "build.duration"
+                        "installation.elapsed_time" "testcoverage" "tests.ran" "elapsed.time"
+                        "testtotal.time"
+                        | rename "tags.package" as PACKAGE "metadatacount" as "METADATA COUNT"
+                        "build.duration" as "TIME TO BUILD(M)" "installation.elapsed_time" as "TIME
+                        TO INSTALL(M)" "testcoverage" as "NUMBER OF TESTS" "tests.ran" as "UNIT TEST
+                        TIME(S)" "elapsed.time" as "elapsed.time(M)" "testtotal.time" as
+                        "testtotal.time(M)"</query>
+                    <earliest>-30d@d</earliest>
+                    <latest>now</latest>
+                    <sampleRatio>1</sampleRatio>
+                </search>
+                <option name="count">100</option>
+                <option name="dataOverlayMode">none</option>
+                <option name="drilldown">none</option>
+                <option name="percentagesRow">false</option>
+                <option name="rowNumbers">true</option>
+                <option name="totalsRow">true</option>
+                <option name="wrap">false</option>
+                <option name="showProgressBar">true</option>
+            </table>
+        </panel>
+    </row>
+</form>
