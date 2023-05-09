@@ -1,12 +1,19 @@
 ![image](https://gblobscdn.gitbook.com/assets%2F-MI39dIf1BuKlg_oSIG_%2F-MersLlsLMydZ6V7hfP-%2F-MersUtb9fBk1m9NMuMc%2Fflowdiagram_revised.png?alt=media&token=b613b0a8-99e3-4702-8f38-033cb1d7700d)
 
-This repo contains the follwing YAML based Azure Pipeline defintions
+This repo contains the follwing YAML based Github Pipeline defintions
 
 -  validate.yml
+
    Pull Request Validation Pipeline, that validates incoming changes against a scratch org fetched from the pool
    
-- build.yml
+- quickbuild-build-deploy.yml
+
    Pipeline that gets triggered on a merge to the trunk (main), resulting in building a set of packages, deploying to a dev sandbox ( and then build a set of validated packages and finally publish that to artifact repository
+
+- release-build-publish.yml
+
+   Triggered on a merge to a release/x branch. Assumes a change has been created/tested in main/dev (quickbuild-build-deploy.yml) and needs to be included in the release via a cherry-pick to the release branch. This builds and publishes off the relase branch making it avialble for the release pipeline.
+
 
 - release.yml
    A release pipeline that utilizes the release defintion to fetch artifacts from artifactory and then deploy to a sandbox 

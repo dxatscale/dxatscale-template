@@ -1,0 +1,74 @@
+# DX@Scale CI/CD Template for GitHub
+#----------------------------------------------------------------------------------------------------
+# Maintained by @aly76 for DX@Scale
+# Follows reference pipeline available at docs.dxatscale.io
+# 
+#-----------------------------------------------------------------------------------------------------
+# To know more about dxatscale, visit https://docs.dxatscale.io
+# To know more on sfpowerscripts, visit- https://sfpowerscripts.dxatscale.io/
+# To know more on sfpowerkit, visit- https://github.com/Accenture/sfpowerkit
+
+# This pipeline builds on a release branch. Assumes you've cherry-picked a fix from master (thats been tested in DEV etc). Makes the change available for release
+
+name: 'CI Pipeline - Release Build - Auto Triggered'
+
+
+on:
+  push:
+    branches:
+      - release/**
+
+
+  workflow_dispatch:
+
+
+
+#Set the environment variables for tracking metrics
+#env:
+  #SFPOWERSCRIPTS_NEWRELIC: 'true'
+  #SFPOWERSCRIPTS_NEWRELIC_API_KEY: '${{ secrets.NEWRELIC_INSIGHT_INSERT_KEYS }}'
+  #SFPOWERSCRIPTS_DATADOG: 'true'
+  #SFPOWERSCRIPTS_DATADOG_HOST: '${{ secrets.DATADOG_HOST }}'
+  #SFPOWERSCRIPTS_DATADOG_API_KEY: '${{ secrets.DATADOG_API_KEY }}'
+
+
+
+jobs:
+  buildAndPublish:
+    name: 'Build and Publish'
+    runs-on: ubuntu-latest
+    container: ghcr.io/dxatscale/sfpowerscripts
+    concurrency: build
+    if: contains(github.ref,'release') || github.ref == 'refs/heads/release/**'
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: 'Authenticate Dev Hub'
+        run: |
+          echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./authfile
+          sfdx auth:sfdxurl:store -f authfile -a devhub
+
+      - name: 'Create packages'
+        id: sfpowerscripts-build
+        run: |
+          sfdx sfpowerscripts:orchestrator:build -v devhub --diffcheck --branch ${GITHUB_REF#refs/heads/} --buildnumber ${GITHUB_RUN_ID}
+
+      # Publish artifacts
+      - uses: actions/upload-artifact@v2
+        with:
+          node-version: '16.x'
+          name: build-artifacts
+          path: artifacts
+
+      - uses: actions/setup-node@v3
+        with:
+         registry-url: 'https://npm.pkg.github.com'
+         scope: '@${{ github.repository_owner }}'
+
+      - name: Publish
+        run: |
+          sfdx sfpowerscripts:orchestrator:publish -d artifacts --npm --scope @${{ github.repository_owner }}  --gittag --pushgittag
+        env:
+         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
