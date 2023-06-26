@@ -9,7 +9,6 @@
 # 
 # DX@Scale CI/CD Template for Azure Pipelines
 #-----------------------------------------------------------------------------------------------------------
-# Maintained by @ramesh-karanji(Ramesh Karanji)
 # Follows reference pipeline available at docs.dxatscale.io
 # 
 #------------------------------------------------------------------------------------------------------------
@@ -68,10 +67,10 @@ jobs:
 # Authenticate DevHub
     - script: |
           echo $(DEVHUB_SFDX_AUTH_URL) > ./authfile
-          sfdx auth:sfdxurl:store -f authfile -a devhub
+         sf org login sfdx-url  -f authfile -a devhub
       displayName: 'Authenticate DevHub'
 
 ## Delete Scratch Org
     - script: |
-          sfdx sfpowerscripts:pool:org:delete -u ${{ parameters.username }} -v devhub
+         sfp pool:org:delete -u ${{ parameters.username }} -v devhub
       displayName: 'Delete scratch org ${{ parameters.username }}'

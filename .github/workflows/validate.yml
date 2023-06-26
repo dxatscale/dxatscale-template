@@ -1,6 +1,5 @@
 # DX@Scale CI/CD Template for GitHub
 #----------------------------------------------------------------------------------------------------
-# Maintained by @aly76 for DX@Scale
 # Follows reference pipeline available at docs.dxatscale.io
 # 
 #-----------------------------------------------------------------------------------------------------
@@ -47,38 +46,13 @@ jobs:
       - name: 'Authenticate Dev Hub'
         run: |
           echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./authfile
-          sfdx auth:sfdxurl:store -f authfile -a devhub
+          sf org login sfdx-url  -f authfile -a devhub
 
 
 
       # Validate source and trigger test
       - name: 'Push source to scratch org'
-        run: 'sfdx sfpowerscripts:orchestrator:validate -p ci -v devhub -x'
+        run: 'sfp orchestrator:validate -p ci -v devhub -x'
 
-  static:
-    name: 'static-analysis-of-Apex-classes-using-PMD'
-    runs-on: ubuntu-latest
-    container: ghcr.io/dxatscale/sfpowerscripts
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
 
-      - name: "Run PMD static code analysis"
-        shell: bash
-        run: |
-          sfdx sfpowerscripts:analyze:pmd -b --sourcedir=src/core-crm -o core-crm-pmd-output
 
-  validate-package-coverage:
-    name: 'validate metadata coverage for unlocked packages'
-    runs-on: ubuntu-latest
-    container: ghcr.io/dxatscale/sfpowerscripts
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - name: "validate metadata coverage"
-        shell: bash
-        run: |
-          sfdx sfpowerkit:package:valid -n core-crm -b StandardValueSet

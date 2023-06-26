@@ -1,6 +1,5 @@
 # DX@Scale CI/CD Template for GitHub
 #----------------------------------------------------------------------------------------------------
-# Maintained by @aly76 for DX@Scale
 # Follows reference pipeline available at docs.dxatscale.io
 # 
 #-----------------------------------------------------------------------------------------------------
@@ -47,12 +46,12 @@ jobs:
       - name: 'Authenticate Dev Hub'
         run: |
           echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./authfile
-          sfdx auth:sfdxurl:store -f authfile -a devhub
+          sf org login sfdx-url  -f authfile -a devhub
 
       - name: 'Create packages'
         id: sfpowerscripts-build
         run: |
-          sfdx sfpowerscripts:orchestrator:quickbuild -v devhub --diffcheck --buildnumber ${GITHUB_RUN_ID} --branch ${GITHUB_REF#refs/heads/}
+          sfp orchestrator:quickbuild -v devhub --diffcheck --buildnumber ${GITHUB_RUN_ID} --branch ${GITHUB_REF#refs/heads/}
 
       # Publish artifacts
       - uses: actions/upload-artifact@v2
@@ -82,16 +81,16 @@ jobs:
       - name:  'Authenticate Dev Hub'
         run: |
           echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./authfile
-          sfdx auth:sfdxurl:store -f authfile -a devhub
+          sf org login sfdx-url  -f authfile -a devhub
 
       - name: Authenticate to DEV sandbox
         run: |
           echo "${{ secrets.DEV_SFDX_AUTH_URL }}" > ./dev_authfile
-          sfdx auth:sfdxurl:store -f ./dev_authfile -a dev
+          sf org login sfdx-url  -f ./dev_authfile -a dev
 
       - name: 'Deploy to DEV'
         run: |
-          sfdx sfpowerkit:package:dependencies:install -u dev -v devhub -w 120 -r
+          sfp dependency:install -u dev -v devhub -w 120 -r
           sfdx sfpowerscripts:orchestrator:deploy -u dev  --skipifalreadyinstalled -g "::group::,::endgroup::" 
 
   buildAndPublish:
@@ -109,12 +108,12 @@ jobs:
       - name: 'Authenticate Dev Hub'
         run: |
           echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./authfile
-          sfdx auth:sfdxurl:store -f authfile -a devhub
+         sf org login sfdx-url  -f authfile -a devhub
 
       - name: 'Create packages'
         id: sfpowerscripts-build
         run: |
-          sfdx sfpowerscripts:orchestrator:build -v devhub --diffcheck --branch ${GITHUB_REF#refs/heads/} --buildnumber ${GITHUB_RUN_ID}
+          sfp orchestrator:build -v devhub --diffcheck --branch ${GITHUB_REF#refs/heads/} --buildnumber ${GITHUB_RUN_ID}
 
       # Publish artifacts
       - uses: actions/upload-artifact@v2
@@ -129,6 +128,6 @@ jobs:
 
       - name: Publish
         run: |
-          sfdx sfpowerscripts:orchestrator:publish -d artifacts --npm --scope @${{ github.repository_owner }}  --gittag --pushgittag
+          sfp orchestrator:publish -d artifacts --npm --scope @${{ github.repository_owner }}  --gittag --pushgittag
         env:
          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
