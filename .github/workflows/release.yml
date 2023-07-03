@@ -44,7 +44,7 @@ jobs:
       - name: Authenticate to ST sandbox
         run: |
           echo "${{ secrets.ST_SFDX_AUTH_URL }}" > ./authfile
-          sfdx auth:sfdxurl:store -f ./authfile -a st
+          sf org login sfdx-url  -f ./authfile -a st
 
       # Authenticate to npm
       - uses: actions/setup-node@v3
@@ -53,7 +53,7 @@ jobs:
 
       # Release to environment
       - name: 'Release to ST'
-        run: 'sfdx sfpowerscripts:orchestrator:release -u st -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname changelog -g "::group::,::endgroup::"'
+        run: 'sfp orchestrator:release -u st -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname changelog -g "::group::,::endgroup::"'
         env:
          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -74,7 +74,7 @@ jobs:
       - name: Authenticate to SIT sandbox
         run: |
           echo "${{ secrets.SIT_SFDX_AUTH_URL }}" > ./authfile
-          sfdx auth:sfdxurl:store -f ./authfile -a sit
+          sf org login sfdx-url  -f ./authfile -a sit
 
       # Authenticate to npm
       - uses: actions/setup-node@v3
@@ -84,7 +84,7 @@ jobs:
 
       # Release to environment
       - name: 'Release to SIT'
-        run: 'sfdx sfpowerscripts:orchestrator:release -u sit -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname changelog -g "::group::,::endgroup::" '
+        run: 'sfp orchestrator:release -u sit -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname changelog -g "::group::,::endgroup::" '
         env:
          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -104,7 +104,7 @@ jobs:
       - name: Authenticate to UAT
         run: |
           echo "${{ secrets.UAT_SFDX_AUTH_URL }}" > ./authfile
-          sfdx auth:sfdxurl:store -f ./authfile -a uat
+          sf org login sfdx-url  -f ./authfile -a uat
 
       # Authenticate to npm
       - uses: actions/setup-node@v3
@@ -114,7 +114,7 @@ jobs:
 
       # Release to environment
       - name: 'Release to UAT'
-        run: 'sfdx sfpowerscripts:orchestrator:release -u uat -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname changelog -g "::group::,::endgroup::"'
+        run: 'sfp orchestrator:release -u uat -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname changelog -g "::group::,::endgroup::"'
         env:
          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -136,8 +136,8 @@ jobs:
       - name: Authenticate to PROD
         run: |
           echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./authfile
-          sfdx auth:sfdxurl:store -f ./authfile -a prod
-
+          sf org login sfdx-url  -f ./authfile -a prod
+ 
 
       # Authenticate to npm
       - uses: actions/setup-node@v3
@@ -147,6 +147,6 @@ jobs:
 
       # Release to environment
       - name: 'Release to PROD'
-        run: 'sfdx sfpowerscripts:orchestrator:release -u prod -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname changelog -g "::group::,::endgroup::"'
+        run: 'sfp orchestrator:release -u prod -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname changelog -g "::group::,::endgroup::"'
         env:
          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

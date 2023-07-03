@@ -9,7 +9,6 @@
 # 
 # DX@Scale CI/CD Template for Azure Pipelines
 #-----------------------------------------------------------------------------------------------------------
-# Maintained by @ramesh-karanji(Ramesh Karanji)
 # Follows reference pipeline available at docs.dxatscale.io
 # 
 #------------------------------------------------------------------------------------------------------------
@@ -61,38 +60,6 @@ variables:
 
 #Stages to run as part Validate
 stages:
-    - stage: ValidatePMD
-#This Stage will run static analysis of the apex classes and triggers using PMD      
-      displayName: ValidatePMD
-      dependsOn: []
-      jobs:
-          - job: ValidatePMD
-            displayName: 'Validate PMD'
-# Runs build on the mentioned Image                           
-            pool:
-                vmImage: 'ubuntu-latest'
-
-#The docker container contains sfpowerscripts and the dependencies it needs to run, # refer to https://github.com/orgs/dxatscale/packages/container/package/sfpowerscripts                
-            container: ghcr.io/dxatscale/sfpowerscripts:latest         
-
-            steps:
-
-            - checkout: self
-              fetchDepth: 0
-              persistCredentials: true
-
-#This task is used to run a static analysis of the apex classes and triggers using PMD      
-            - script: |
-                  sfdx sfpowerscripts:analyze:pmd -b  -o pmd-output --format=csv 
-              continueOnError: true
-              displayName: 'PMD Validation'  
-
-#Publish PMD analysis results to artifacts
-            - task: PublishBuildArtifacts@1
-              inputs:
-                    pathToPublish: pmd-output
-                    artifactName: PMDResults
-
 
     - stage: ValidateSource
 #Validates Source code changes 
@@ -119,11 +86,11 @@ stages:
 # Authenticate DevHub                
             - script: |
                     echo $(DEVHUB_SFDX_AUTH_URL) > ./authfile
-                    sfdx auth:sfdxurl:store -f authfile -a devhub
+                    sf org login sfdx-url  -f authfile -a devhub
               displayName: 'Authenticate DevHub'
 
 #Validate the incoming change against a prepared scratch org fetched from the provided CI pools 
 # and marks Scratch Org for deletion
             - script: |
-                    sfdx sfpowerscripts:orchestrator:validate -x -p ci -v devhub --loglevel debug
+                    sfp orchestrator:validate -x -p ci -v devhub --loglevel debug
               displayName: 'Validate Source'

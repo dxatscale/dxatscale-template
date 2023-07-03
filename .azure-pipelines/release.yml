@@ -9,7 +9,6 @@
 # 
 # DX@Scale CI/CD Template for Azure Pipelines
 #-----------------------------------------------------------------------------------------------------------
-# Maintained by @ramesh-karanji(Ramesh Karanji)
 # Follows reference pipeline available at docs.dxatscale.io
 # 
 #------------------------------------------------------------------------------------------------------------
@@ -88,13 +87,13 @@ stages:
 
                  - script: |
                         echo $(ST_SFDX_AUTH_URL) > ./authfile
-                        sfdx auth:sfdxurl:store -f authfile -a st
+                        sf org login sfdx-url  -f authfile -a st
                    displayName: 'Authenticate to ST'
 
                  - task: CmdLine@2
                    displayName: 'Deploy packages to st'
                    inputs:
-                      script: 'sfdx sfpowerscripts:orchestrator:release -u st -p ${{ parameters.releasedefintionPath }} --npm --scope  $(scope) --npmrcpath $(npmrc.secureFilePath) --generatechangelog --branchname changelog  -g "##[group],##[endgroup]"'
+                      script: 'sfp orchestrator:release -u st -p ${{ parameters.releasedefintionPath }} --npm --scope  $(scope) --npmrcpath $(npmrc.secureFilePath) --generatechangelog --branchname changelog  -g "##[group],##[endgroup]"'
                    env:
                      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
@@ -130,14 +129,14 @@ stages:
 
                  - script: |
                         echo $(SIT_SFDX_AUTH_URL) > ./authfile
-                        sfdx auth:sfdxurl:store -f authfile -a sit
+                       sf org login sfdx-url  -f authfile -a sit
                    displayName: 'Authenticate to SIT'
 
 
                  - task: CmdLine@2
                    displayName: 'Deploy packages to SIT'
                    inputs:
-                      script: 'sfdx sfpowerscripts:orchestrator:release -u sit -p ${{ parameters.releasedefintionPath }} --npm --scope  $(scope) --npmrcpath $(npmrc.secureFilePath) --generatechangelog  --branchname changelog  -g "##[group],##[endgroup]"'
+                      script: 'sfp orchestrator:release -u sit -p ${{ parameters.releasedefintionPath }} --npm --scope  $(scope) --npmrcpath $(npmrc.secureFilePath) --generatechangelog  --branchname changelog  -g "##[group],##[endgroup]"'
                    env:
                      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
@@ -174,13 +173,13 @@ stages:
 
                 - script: |
                         echo $(UAT_SFDX_AUTH_URL) > ./authfile
-                        sfdx auth:sfdxurl:store -f authfile -a uat
+                        sf org login sfdx-url  -f authfile -a uat
                   displayName: 'Authenticate to UAT'
 
                 - task: CmdLine@2
                   displayName: 'Deploy packages to UAT'
                   inputs:
-                      script: 'sfdx sfpowerscripts:orchestrator:release -u uat -p ${{ parameters.releasedefintionPath }} --npm --scope $(scope) --npmrcpath $(npmrc.secureFilePath) --generatechangelog  --branchname changelog  -g "##[group],##[endgroup]"'
+                      script: 'sfp orchestrator:release -u uat -p ${{ parameters.releasedefintionPath }} --npm --scope $(scope) --npmrcpath $(npmrc.secureFilePath) --generatechangelog  --branchname changelog  -g "##[group],##[endgroup]"'
                   env:
                      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
@@ -218,12 +217,12 @@ stages:
 
                 - script: |
                         echo $(DEVHUB_SFDX_AUTH_URL) > ./authfile
-                        sfdx auth:sfdxurl:store -f authfile -a prod
+                        sf org login sfdx-url  -f authfile -a prod
                   displayName: 'Authenticate to Prod'
 
                 - task: CmdLine@2
                   displayName: 'Deploy packages to Prod'
                   inputs:
-                      script: 'sfdx sfpowerscripts:orchestrator:release -u prod -p ${{ parameters.releasedefintionPath }} --npm --scope $(scope) --npmrcpath $(npmrc.secureFilePath) --generatechangelog  --branchname changelog  -g "##[group],##[endgroup]"'
+                      script: 'sfp orchestrator:release -u prod -p ${{ parameters.releasedefintionPath }} --npm --scope $(scope) --npmrcpath $(npmrc.secureFilePath) --generatechangelog  --branchname changelog  -g "##[group],##[endgroup]"'
                   env:
                      SYSTEM_ACCESSTOKEN: $(System.AccessToken)

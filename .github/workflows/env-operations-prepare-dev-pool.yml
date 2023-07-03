@@ -1,6 +1,5 @@
 # DX@Scale CI/CD Template for GitHub
 #----------------------------------------------------------------------------------------------------
-# Maintained by @aly76 for DX@Scale
 # Follows reference pipeline available at docs.dxatscale.io
 # 
 #-----------------------------------------------------------------------------------------------------
@@ -51,7 +50,7 @@ jobs:
       - name: 'Authenticate Dev Hub'
         run: |
           echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./authfile
-          sfdx auth:sfdxurl:store -f authfile -a devhub
+         sf org login sfdx-url  -f authfile -a devhub
 
       # Authenticate to npm
       - uses: actions/setup-node@v3
@@ -59,7 +58,7 @@ jobs:
          registry-url: 'https://npm.pkg.github.com'
 
       - name: 'Prepare a pool of scratch orgs'
-        run: 'sfdx sfpowerscripts:orchestrator:prepare -f config/project-dev-pool-def.json -v devhub'
+        run: 'sfp orchestrator:prepare -f config/project-dev-pool-def.json -v devhub'
         env:
          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         

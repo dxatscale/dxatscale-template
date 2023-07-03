@@ -9,7 +9,6 @@
     
 # DX@Scale CI/CD Template for Gitlab
 #-----------------------------------------------------------------------------------------------------------
-# Maintained by @ramesh-karanji(Ramesh Karanji), @henry88lay(Henry Lay), @vuha-acn(Vu Ha) for DX@Scale
 # Follows reference pipeline available at docs.dxatscale.io
 #
 # This specific template is located at:
@@ -65,7 +64,7 @@ default:
    image: ghcr.io/dxatscale/sfpowerscripts
    # Generate NPM Configuration File for Package Registry Publishing
    before_script:
-    - sfdx auth:sfdxurl:store -f "$DEVHUB_SFDX_AUTH_URL" -a "$DEVHUB_ALIAS"
+    - sf org login sfdx-url  -f "$DEVHUB_SFDX_AUTH_URL" -a "$DEVHUB_ALIAS"
     - echo "${NPM_SCOPE}:registry=https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/packages/npm/" >> .npmrc
     - echo "//${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}" >> .npmrc 
     # Below setting is required to push git tags and changelog to the repo      
@@ -139,30 +138,6 @@ stages:
 
 ## 1. This pipeline is used to validate an incoming change using a dev environment fetched from the CI pool    
 
-# Analyze PMD (source code analyzer) 
-analyze-pmd:  
-  stage: analyze
-  extends: .analyze-rules  
-  script:
-    - echo "PMD Validation"
-    # Duplicate the below command for each package in the repository
-    - sfdx sfpowerscripts:analyze:pmd --format csv --outputpath pmd-output-core-crm.csv --sourcedir src/core-crm
-  artifacts:
-    paths:
-      # Update the name of the csv output to match above --outputpath
-      - pmd-output-core-crm.csv
-    expire_in: 1 week        
-    when: always
-
-# Validates a package directory to check whether it only contains valid metadata as per metadata coverage  
-validate-package:
-  stage: validate
-  extends: .run-on-merge-request
-  script:
-    - echo "Validate package metadata"
-    # Duplicate the below command for each package in the repository
-    - sfdx sfpowerkit:package:valid -n core-crm       
-
 # Validate the incoming change against a prepared scratch org fetched from the provided CI pools   
 validate-source:
   stage: validate
@@ -170,7 +145,7 @@ validate-source:
   script:
     - echo "Validate source"
     # Match the pool CI pool tag defined in your project-ci-pool-def.json definition file
-    - sfdx sfpowerscripts:orchestrator:validate -p ci -v "$DEVHUB_ALIAS" -x
+    - sfp orchestrator:validate -p ci -v "$DEVHUB_ALIAS" -x
 
 ## 2. This pipeline quickbuilds, deploy to QA, builds and publishes packages to artifact repository
 
@@ -180,7 +155,7 @@ quickbuild:
   stage: quickbuild 
   script:
     - echo "Quick Build the packages"
-    - sfdx sfpowerscripts:orchestrator:quickbuild -v "$DEVHUB_ALIAS" --branch "$CI_COMMIT_BRANCH" --buildnumber $CI_PIPELINE_ID --diffcheck
+    - sfp orchestrator:quickbuild -v "$DEVHUB_ALIAS" --branch "$CI_COMMIT_BRANCH" --buildnumber $CI_PIPELINE_ID --diffcheck
   artifacts:
     paths:
       - artifacts/
@@ -191,9 +166,9 @@ deploy:
   stage: deploy
   needs: ["quickbuild"]  
   script:
-    - sfdx auth:sfdxurl:store -f "$SHAREDDEV_SFDX_AUTH_URL" -a "$SHAREDDEV_ALIAS"    
-    - sfdx sfpowerkit:package:dependencies:install -u "$SHAREDDEV_ALIAS" -v "$DEVHUB_ALIAS"
-    - sfdx sfpowerscripts:orchestrator:deploy -u "$SHAREDDEV_ALIAS"
+    - sf org login sfdx-url  -f "$SHAREDDEV_SFDX_AUTH_URL" -a "$SHAREDDEV_ALIAS"    
+    - sfp dependency:install -u "$SHAREDDEV_ALIAS" -v "$DEVHUB_ALIAS"
+    - sfp orchestrator:deploy -u "$SHAREDDEV_ALIAS"
   dependencies:
     - quickbuild
   environment:
@@ -207,8 +182,8 @@ build:
   needs: ["deploy"]  
   script:
     - echo "Build Production Ready Packages and Publish"
-    - sfdx sfpowerscripts:orchestrator:build -v "$DEVHUB_ALIAS" --branch "$CI_COMMIT_BRANCH" --buildnumber $CI_PIPELINE_ID --diffcheck
-    - sfdx sfpowerscripts:orchestrator:publish -v "$DEVHUB_ALIAS" --npm  --npmrcpath .npmrc --scope "$NPM_SCOPE" --gittag --pushgittag
+    - sfp orchestrator:build -v "$DEVHUB_ALIAS" --branch "$CI_COMMIT_BRANCH" --buildnumber $CI_PIPELINE_ID --diffcheck
+    - sfp orchestrator:publish -v "$DEVHUB_ALIAS" --npm  --npmrcpath .npmrc --scope "$NPM_SCOPE" --gittag --pushgittag
   environment:
     name: build-env
   resource_group: build
@@ -221,8 +196,8 @@ ST:
   stage: release
   extends: .run-on-manual
   script:
-    - sfdx auth:sfdxurl:store -f "$ST_SFDX_AUTH_URL" -a "$ST_ALIAS"
-    - sfdx sfpowerscripts:orchestrator:release -u "$ST_ALIAS" -p release-definitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
+    - sf org login sfdx-url  -f "$ST_SFDX_AUTH_URL" -a "$ST_ALIAS"
+    - sfp orchestrator:release -u "$ST_ALIAS" -p release-definitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
   environment:
     name: ST
   resource_group: ST
@@ -234,8 +209,8 @@ SIT:
   extends: .run-on-manual
   needs: ["ST"]
   script:
-    - sfdx auth:sfdxurl:store -f "$SIT_SFDX_AUTH_URL" -a "$SIT_ALIAS"
-    - sfdx sfpowerscripts:orchestrator:release -u "$SIT_ALIAS" -p release-definitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
+    - sf org login sfdx-url  -f "$SIT_SFDX_AUTH_URL" -a "$SIT_ALIAS"
+    - sfp orchestrator:release -u "$SIT_ALIAS" -p release-definitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
   environment:
     name: SIT
   resource_group: SIT
@@ -246,8 +221,8 @@ UAT:
   extends: .run-on-manual
   needs: ["SIT"]
   script:
-    - sfdx auth:sfdxurl:store -f "$UAT_SFDX_AUTH_URL" -a "$UAT_ALIAS"
-    - sfdx sfpowerscripts:orchestrator:release -u "$UAT_ALIAS" -p release-definitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
+    - sf org login sfdx-url  -f "$UAT_SFDX_AUTH_URL" -a "$UAT_ALIAS"
+    - sfp orchestrator:release -u "$UAT_ALIAS" -p release-definitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
   environment:
     name: UAT
   resource_group: UAT
@@ -258,8 +233,8 @@ PROD:
   extends: .run-on-manual
   needs: ["UAT"]
   script:
-    - sfdx auth:sfdxurl:store -f "$PROD_SFDX_AUTH_URL" -a "$PROD_ALIAS"
-    - sfdx sfpowerscripts:orchestrator:release -u "$PROD_ALIAS" -p release-definitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
+    - sf org login sfdx-url  -f "$PROD_SFDX_AUTH_URL" -a "$PROD_ALIAS"
+    - sfp orchestrator:release -u "$PROD_ALIAS" -p release-definitions/release-1.0.yml --npm --npmrcpath .npmrc --scope "$NPM_SCOPE"  --generatechangelog --branchname changelog
   environment:
     name: PROD
   resource_group: PROD
@@ -274,7 +249,7 @@ prepare-ci-pool:
   rules:
     - if: '$TARGETTASKNAME == "schedule-prepare-ci-pool"'
   script:
-    - sfdx sfpowerscripts:orchestrator:prepare -v "$DEVHUB_ALIAS" -f config/project-ci-pool-def.json
+    - sfp orchestrator:prepare -v "$DEVHUB_ALIAS" -f config/project-ci-pool-def.json
   artifacts:
     paths:
       - .sfpowerscripts/prepare_logs/
@@ -287,7 +262,7 @@ prepare-dev-pool:
   rules:
     - if: '$TARGETTASKNAME == "schedule-prepare-dev-pool"'
   script:
-    - sfdx sfpowerscripts:orchestrator:prepare -v "$DEVHUB_ALIAS" -f config/project-dev-pool-def.json --npmrcpath=.npmrc    
+    - sfp orchestrator:prepare -v "$DEVHUB_ALIAS" -f config/project-dev-pool-def.json --npmrcpath=.npmrc    
   artifacts:
     paths:
       - .sfpowerscripts/prepare_logs/
@@ -302,7 +277,7 @@ clean-dev-pool:
   rules:
     - if: '$TARGETTASKNAME == "schedule-clean-pool"'    
   script:
-    - sfdx sfpowerscripts:pool:delete -t dev -v "$DEVHUB_ALIAS"
+    - sfp pool:delete -t dev -v "$DEVHUB_ALIAS"
 
 # This job cleans the CI pools    
 clean-ci-pool:
@@ -310,7 +285,7 @@ clean-ci-pool:
   rules:
     - if: '$TARGETTASKNAME == "schedule-clean-pool"'   
   script:
-      - sfdx sfpowerscripts:pool:delete -t ci -v "$DEVHUB_ALIAS" -a   
+      - sfp pool:delete -t ci -v "$DEVHUB_ALIAS" -a   
 
 # This job deletes a specified fetched developer scratch org by username   
 delete-fetched-so:
@@ -318,7 +293,7 @@ delete-fetched-so:
   rules:
     - if: '$TARGETTASKNAME == "manual-delete-fetched-so"'     
   script:
-      - sfdx sfpowerscripts:pool:org:delete -v "$DEVHUB_ALIAS" -u $SCRATCH_ORG_USERNAME
+      - sfp pool:org:delete -v "$DEVHUB_ALIAS" -u $SCRATCH_ORG_USERNAME
 
 ## 5. Publish Scratch Org Pool Metrics to CI/CD Dashboards 
 
@@ -328,4 +303,4 @@ report-so-pool:
   rules:
     - if: '$TARGETTASKNAME == "schedule-report-so-pool"'   
   script:
-      - sfdx sfpowerscripts:pool:metrics:publish -v "$DEVHUB_ALIAS"
+      - sfp pool:metrics:publish -v "$DEVHUB_ALIAS"

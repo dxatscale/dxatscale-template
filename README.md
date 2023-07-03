@@ -6,9 +6,8 @@ This project is using a scratch org development model. In order to contribute yo
 
 **Dependencies**
 
-- sfdx cli
-- sfpowerkit plugin ( sfdx plugins:install @dxatscale/sfpowerkit)
-- @dxatscale/sfpowerscripts plugin  ( sfdx plugins:install @dxatscale/sfpowerscripts)
+- sf cli
+- @dxatscale/sfpowerscripts plugin  ( npm i -g  @dxatscale/sfpowerscripts)
 
 
 **Scratch Org Setup**
@@ -19,7 +18,7 @@ For this you will need to be authenticated to a Dev Hub org - this is typically 
 
     You need to perform this step only once
    ```
-    $ sfdx force:auth:web:login -setalias devhub
+    $ sf auth:web:login -setalias devhub
    ```
 
 
@@ -30,17 +29,17 @@ For this you will need to be authenticated to a Dev Hub org - this is typically 
     - Option A: Fetch a scratch org from the pool [Preferred]
        ```
     
-       sfdx sfpowerscripts:pool:fetch -t dev -a  <alias>
+       sfp pool:fetch -t dev -a  <alias>
       ```
     
     - Option B: Create a scratch org and install all dependencies
     
         ```
-        sfdx force:org:create --definitionfile config/project-scratch-def.json --setalias <myScratchOrg> --targetdevhubusername <devhub-alias>
-        sfdx sfpowerkit:package:dependencies:install --targetusername <myScratchOrg> -v <devhub-alias>
+        sfdx org:create --definitionfile config/project-scratch-def.json --setalias <myScratchOrg> --targetdevhubusername <devhub-alias>
+        sfp dependency:install --targetusername <myScratchOrg> -v <devhub-alias>
         
         Push the source code
-        sfdx force:source:push --targetusername <myScratchOrg>
+        sf project deploy start --targetusername <myScratchOrg>
 
        ```
 
