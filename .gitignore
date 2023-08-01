@@ -1,4 +1,5 @@
 .sfpowerscripts
 artifacts
 .sfdx
+.sf
 .npmrc
