@@ -90,8 +90,8 @@ jobs:
 
       - name: 'Deploy to DEV'
         run: |
-          sfp dependency:install -u dev -v devhub -w 120 -r
-          sfdx sfpowerscripts:orchestrator:deploy -u dev  --skipifalreadyinstalled -g "::group::,::endgroup::" 
+          sfp dependency:install -u dev -v devhub
+          sfp orchestrator:deploy -u dev  --skipifalreadyinstalled -g "::group::,::endgroup::" 
 
   buildAndPublish:
     name: 'Build and Publish'
@@ -108,7 +108,7 @@ jobs:
       - name: 'Authenticate Dev Hub'
         run: |
           echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./authfile
-         sf org login sfdx-url  -f authfile -a devhub
+          sf org login sfdx-url  -f authfile -a devhub
 
       - name: 'Create packages'
         id: sfpowerscripts-build
