@@ -10,7 +10,7 @@ fi
 # Add authInfo.txt to the .gitignore so it is not saved in the repo just to be sure
 # The script will remove the files anyway (line 43)
 # I couldn't use the standard json file that sfpowerscipt uses for the authentication because of the timing
-sfdx sfpowerscripts:pool:fetch -t dev > authInfo.txt
+sfp pool:fetch -t dev > authInfo.txt
 
 # Find the username of the fetched Scratch Org and assign it to a variable 
 # File to search
