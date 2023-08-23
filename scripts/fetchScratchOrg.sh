@@ -21,23 +21,23 @@ usernameSO="$(grep -o -E "\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,6}\b" 
 echo $usernameSO
 
 # Sets alias for scratch Org the same as the feature branch for matching and better visibility
-sfdx force:alias:set $1=$usernameSO
+sf alias set $1=$usernameSO
 
 # Assigns the scratch Org as deafult Org in vsCode project
-sfdx config:set defaultusername=$1
+sf config set target-org=$1
 
 # Pushes metadata to the empty scratch org
 # Remove the # belo if you wish to push the metadata again after fetching the dev Scratch Org
-#sfdx force:source:push -f -u $1 -w 60 || {
+#sf project deploy start -c -o $1 -w 60 || {
 #    exit 1
 #}
 
 # Resets source tracking to avoid unnessesary changes like layouts being pulled
-sfdx force:source:tracking:reset -u $1 --noprompt
+sf project reset tracking -o $1 -p
 
 # Opens the scratch Org in a browser tab
 echo "Your new scratch org will open in your browser within a few seconds... ✅"
-sfdx force:org:open -u $1
+sf org open -o $1
 
 # Removes the authInfo.txt file from line 13 so the credentials are not saved in repo
 rm authInfo.txt
