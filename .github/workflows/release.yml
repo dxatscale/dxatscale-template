@@ -21,6 +21,10 @@ on:
       pathToReleaseDef:
         description: "Path to release definition file"
         required: true
+      releaseDefBranch:
+        description: "Branch to fetch release definition file from"
+        required: true
+        default: "release-definition"
 
 #Set the environment variables for tracking metrics
 #env:
@@ -53,17 +57,17 @@ jobs:
 
       # Release to environment
       - name: 'Release to ST'
-        run: 'sfp orchestrator:release -u st -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname changelog -g "::group::,::endgroup::"'
+        run: |
+          git checkout ${{ github.event.inputs.releaseDefBranch }}
+          sfp orchestrator:release -u st -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname changelog -g "::group::,::endgroup::"
         env:
          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   SIT:
     runs-on: ubuntu-latest
     container: ghcr.io/dxatscale/sfpowerscripts
-    if: github.ref == 'refs/heads/main' || contains(github.ref,'refs/heads/release')
     environment:
       name: SIT
-    needs: ST  
 
     steps:
       - uses: actions/checkout@v2
@@ -84,37 +88,9 @@ jobs:
 
       # Release to environment
       - name: 'Release to SIT'
-        run: 'sfp orchestrator:release -u sit -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname changelog -g "::group::,::endgroup::" '
-        env:
-         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  UAT:
-    runs-on: ubuntu-latest
-    container: ghcr.io/dxatscale/sfpowerscripts
-    if: contains(github.ref,'refs/heads/release')
-    environment:
-      name: UAT
-
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-
-      - name: Authenticate to UAT
         run: |
-          echo "${{ secrets.UAT_SFDX_AUTH_URL }}" > ./authfile
-          sf org login sfdx-url  -f ./authfile -a uat
-
-      # Authenticate to npm
-      - uses: actions/setup-node@v3
-        with:
-         registry-url: 'https://npm.pkg.github.com'
-
-
-      # Release to environment
-      - name: 'Release to UAT'
-        run: 'sfp orchestrator:release -u uat -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname changelog -g "::group::,::endgroup::"'
+          git checkout ${{ github.event.inputs.releaseDefBranch }}
+          sfp orchestrator:release -u sit -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname changelog -g "::group::,::endgroup::"
         env:
          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -122,10 +98,8 @@ jobs:
   PROD:
     runs-on: ubuntu-latest
     container: ghcr.io/dxatscale/sfpowerscripts
-    if: contains(github.ref,'refs/heads/release')
     environment:
       name: PROD
-    needs: UAT  
 
     steps:
       - uses: actions/checkout@v2
@@ -147,6 +121,8 @@ jobs:
 
       # Release to environment
       - name: 'Release to PROD'
-        run: 'sfp orchestrator:release -u prod -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname changelog -g "::group::,::endgroup::"'
+        run: |
+          git checkout ${{ github.event.inputs.releaseDefBranch }}
+          sfp orchestrator:release -u prod -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname changelog -g "::group::,::endgroup::"
         env:
          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
