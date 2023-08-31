@@ -131,3 +131,16 @@ jobs:
           sfp orchestrator:publish -d artifacts --npm --scope @${{ github.repository_owner }}  --gittag --pushgittag
         env:
          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 'Define Release'
+        run: |
+          RELEASE_NAME=${GITHUB_RUN_ID}
+          if [ "$RELEASE_NAME_PREFIX" != "" ]; then RELEASE_NAME="${RELEASE_NAME_PREFIX}-${GITHUB_RUN_ID}"; fi 
+          
+          TARGET_BRANCH="release-definition"
+          if [ "$RELEASE_DEF_TARGET_BRANCH" != "" ]; then TARGET_BRANCH="$RELEASE_DEF_TARGET_BRANCH"; fi
+          
+          git tag -a $RELEASE_NAME -m "$RELEASE_NAME"
+          git push origin $RELEASE_NAME
+          
+          sfp releasedefinition:generate --branchname "$TARGET_BRANCH_BANE" --gitref "$RELEASE_NAME" --configfile release-config/config.yml --releasename "$RELEASE_NAME"
