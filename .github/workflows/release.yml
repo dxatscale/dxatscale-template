@@ -4,15 +4,14 @@
 # Follows reference pipeline available at docs.dxatscale.io
 # 
 #-----------------------------------------------------------------------------------------------------
-# To know more about dxatscale, visit https://docs.dxatscale.io
-# To know more on sfpowerscripts, visit- https://sfpowerscripts.dxatscale.io/
-# To know more on sfpowerkit, visit- https://github.com/Accenture/sfpowerkit
+# To know more about dxatscale, visit - https://docs.dxatscale.io
+# To know more on sfpowerscripts, visit - https://sfpowerscripts.dxatscale.io/
 
 
 # This pipeline is used to release a set of packages into respective environments
 # Changelog will be written to changelog branch
 
-name: 'CD Pipeline - User Triggered'
+name: 'release'
 
 
 on:
@@ -26,48 +25,27 @@ on:
         required: true
         default: "release-definition"
 
-#Set the environment variables for tracking metrics
-#env:
-  #SFPOWERSCRIPTS_NEWRELIC: 'true'
-  #SFPOWERSCRIPTS_NEWRELIC_API_KEY: '${{ secrets.NEWRELIC_INSIGHT_INSERT_KEYS }}'
-  #SFPOWERSCRIPTS_DATADOG: 'true'
-  #SFPOWERSCRIPTS_DATADOG_HOST: '${{ secrets.DATADOG_HOST }}'
-  #SFPOWERSCRIPTS_DATADOG_API_KEY: '${{ secrets.DATADOG_API_KEY }}'
+# Set the environment variables
+#----------------------------------------------------------------------------------------------------
+#   Authentication:
+#     - STAGING_SFDX_AUTH_URL
+#     - PROD_SFDX_AUTH_URL
+#-----------------------------------------------------------------------------------------------------
+#   Tracking Metrics:
+#     - SFPOWERSCRIPTS_NEWRELIC: 'true'
+#     - SFPOWERSCRIPTS_NEWRELIC_API_KEY: '${{ secrets.NEWRELIC_INSIGHT_INSERT_KEYS }}'
+#     - SFPOWERSCRIPTS_DATADOG: 'true'
+#     - SFPOWERSCRIPTS_DATADOG_HOST: '${{ secrets.DATADOG_HOST }}'
+#     - SFPOWERSCRIPTS_DATADOG_API_KEY: '${{ secrets.DATADOG_API_KEY }}'
 
 jobs:
-  ST:
+
+  STAGING:
     runs-on: ubuntu-latest
     container: ghcr.io/dxatscale/sfpowerscripts
+    if: github.ref == 'refs/heads/main' || contains(github.ref,'refs/heads/release')
     environment:
-      name: ST
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-   
-      - name: Authenticate to ST sandbox
-        run: |
-          echo "${{ secrets.ST_SFDX_AUTH_URL }}" > ./authfile
-          sf org login sfdx-url  -f ./authfile -a st
-
-      # Authenticate to npm
-      - uses: actions/setup-node@v3
-        with:
-         registry-url: 'https://npm.pkg.github.com'
-
-      # Release to environment
-      - name: 'Release to ST'
-        run: |
-          git checkout ${{ github.event.inputs.releaseDefBranch }}
-          sfp orchestrator:release -u st -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname changelog -g "::group::,::endgroup::"
-        env:
-         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  SIT:
-    runs-on: ubuntu-latest
-    container: ghcr.io/dxatscale/sfpowerscripts
-    environment:
-      name: SIT
+      name: STAGING
 
     steps:
       - uses: actions/checkout@v2
@@ -75,9 +53,9 @@ jobs:
           fetch-depth: 0
 
    
-      - name: Authenticate to SIT sandbox
+      - name: Authenticate to STAGING environment
         run: |
-          echo "${{ secrets.SIT_SFDX_AUTH_URL }}" > ./authfile
+          echo "${{ secrets.STAGING_SFDX_AUTH_URL }}" > ./authfile
           sf org login sfdx-url  -f ./authfile -a sit
 
       # Authenticate to npm
@@ -87,7 +65,7 @@ jobs:
 
 
       # Release to environment
-      - name: 'Release to SIT'
+      - name: Release to STAGING
         run: |
           git checkout ${{ github.event.inputs.releaseDefBranch }}
           sfp orchestrator:release -u sit -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname changelog -g "::group::,::endgroup::"
@@ -98,6 +76,7 @@ jobs:
   PROD:
     runs-on: ubuntu-latest
     container: ghcr.io/dxatscale/sfpowerscripts
+    if: github.ref == 'refs/heads/main' || contains(github.ref,'refs/heads/release')
     environment:
       name: PROD
 
@@ -109,7 +88,7 @@ jobs:
 
       - name: Authenticate to PROD
         run: |
-          echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./authfile
+          echo "${{ secrets.PROD_SFDX_AUTH_URL }}" > ./authfile
           sf org login sfdx-url  -f ./authfile -a prod
  
 
@@ -120,7 +99,7 @@ jobs:
 
 
       # Release to environment
-      - name: 'Release to PROD'
+      - name: Release to PROD
         run: |
           git checkout ${{ github.event.inputs.releaseDefBranch }}
           sfp orchestrator:release -u prod -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname changelog -g "::group::,::endgroup::"
