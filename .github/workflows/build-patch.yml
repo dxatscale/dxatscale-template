@@ -2,7 +2,7 @@
 #----------------------------------------------------------------------------------------------------
 # Maintained by @aly76 for DX@Scale
 # Follows reference pipeline available at docs.dxatscale.io
-# 
+#
 #-----------------------------------------------------------------------------------------------------
 # To know more about dxatscale, visit https://docs.dxatscale.io
 # To know more on sfpowerscripts, visit- https://sfpowerscripts.dxatscale.io/
@@ -10,7 +10,7 @@
 
 # This pipeline builds on a release branch. Assumes you've cherry-picked a fix from master (thats been tested in DEV etc). Makes the change available for release
 
-name: 'CI Pipeline - Release Build - Auto Triggered'
+name: 'CI - Build Patch'
 
 
 on:
@@ -35,11 +35,10 @@ on:
 
 jobs:
   buildAndPublish:
-    name: 'Build and Publish'
+    name: 'Build & Publish'
     runs-on: ubuntu-latest
     container: ghcr.io/dxatscale/sfpowerscripts
-    concurrency: build
-    if: contains(github.ref,'release') || github.ref == 'refs/heads/release/**'
+    concurrency: build-patch
     steps:
       - uses: actions/checkout@v2
         with:
@@ -50,7 +49,7 @@ jobs:
           echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./authfile
           sf org login sfdx-url  -f authfile -a devhub
 
-      - name: 'Create packages'
+      - name: 'Create Packages'
         id: sfpowerscripts-build
         run: |
           sfp orchestrator:build -v devhub --diffcheck --branch ${GITHUB_REF#refs/heads/} --buildnumber ${GITHUB_RUN_ID}
@@ -67,7 +66,7 @@ jobs:
          registry-url: 'https://npm.pkg.github.com'
          scope: '@${{ github.repository_owner }}'
 
-      - name: Publish
+      - name: 'Publish Packages'
         run: |
           sfp orchestrator:publish -d artifacts --npm --scope @${{ github.repository_owner }}  --gittag --pushgittag
         env:
@@ -76,12 +75,12 @@ jobs:
       - name: 'Define Release'
         run: |
           RELEASE_NAME=${GITHUB_RUN_ID}
-          if [ "$RELEASE_NAME_PREFIX" != "" ]; then RELEASE_NAME="${RELEASE_NAME_PREFIX}-${GITHUB_RUN_ID}"; fi 
-          
+          if [ "$RELEASE_NAME_PREFIX" != "" ]; then RELEASE_NAME="${RELEASE_NAME_PREFIX}-${GITHUB_RUN_ID}"; fi
+
           TARGET_BRANCH="release-definition"
           if [ "$RELEASE_DEF_TARGET_BRANCH" != "" ]; then TARGET_BRANCH="$RELEASE_DEF_TARGET_BRANCH"; fi
-          
+
           git tag -a $RELEASE_NAME -m "$RELEASE_NAME"
           git push origin $RELEASE_NAME
-          
+
           sfp releasedefinition:generate --branchname "$TARGET_BRANCH_BANE" --gitref "$RELEASE_NAME" --configfile release-config/config.yml --releasename "$RELEASE_NAME"

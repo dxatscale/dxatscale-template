@@ -2,7 +2,7 @@
 #----------------------------------------------------------------------------------------------------
 # Maintained by @aly76 for DX@Scale
 # Follows reference pipeline available at docs.dxatscale.io
-# 
+#
 #-----------------------------------------------------------------------------------------------------
 # To know more about dxatscale, visit - https://docs.dxatscale.io
 # To know more on sfpowerscripts, visit - https://sfpowerscripts.dxatscale.io/
@@ -11,7 +11,7 @@
 # This pipeline is used to release a set of packages into respective environments
 # Changelog will be written to changelog branch
 
-name: 'release'
+name: 'CD - Release'
 
 
 on:
@@ -28,7 +28,7 @@ on:
 # Set the environment variables
 #----------------------------------------------------------------------------------------------------
 #   Authentication:
-#     - STAGING_SFDX_AUTH_URL
+#     - TEST_SFDX_AUTH_URL
 #     - PROD_SFDX_AUTH_URL
 #-----------------------------------------------------------------------------------------------------
 #   Tracking Metrics:
@@ -40,23 +40,23 @@ on:
 
 jobs:
 
-  STAGING:
+  TEST:
     runs-on: ubuntu-latest
     container: ghcr.io/dxatscale/sfpowerscripts
     if: github.ref == 'refs/heads/main' || contains(github.ref,'refs/heads/release')
     environment:
-      name: STAGING
+      name: TEST
 
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
 
-   
-      - name: Authenticate to STAGING environment
+
+      - name: Authenticate to TEST environment
         run: |
-          echo "${{ secrets.STAGING_SFDX_AUTH_URL }}" > ./authfile
-          sf org login sfdx-url  -f ./authfile -a sit
+          echo "${{ secrets.TEST_SFDX_AUTH_URL }}" > ./authfile
+          sf org login sfdx-url --sfdx-url-file ./authfile --alias test
 
       # Authenticate to npm
       - uses: actions/setup-node@v3
@@ -65,10 +65,10 @@ jobs:
 
 
       # Release to environment
-      - name: Release to STAGING
+      - name: Release to TEST
         run: |
           git checkout ${{ github.event.inputs.releaseDefBranch }}
-          sfp orchestrator:release -u sit -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname changelog -g "::group::,::endgroup::"
+          sfp orchestrator:release --targetorg test --releasedefinition ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname changelog -g "::group::,::endgroup::"
         env:
          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -89,8 +89,8 @@ jobs:
       - name: Authenticate to PROD
         run: |
           echo "${{ secrets.PROD_SFDX_AUTH_URL }}" > ./authfile
-          sf org login sfdx-url  -f ./authfile -a prod
- 
+          sf org login sfdx-url --sfdx-url-file ./authfile --alias prod
+
 
       # Authenticate to npm
       - uses: actions/setup-node@v3
@@ -102,6 +102,6 @@ jobs:
       - name: Release to PROD
         run: |
           git checkout ${{ github.event.inputs.releaseDefBranch }}
-          sfp orchestrator:release -u prod -p ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname changelog -g "::group::,::endgroup::"
+          sfp orchestrator:release --targetorg prod --releasedefinition ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname changelog -g "::group::,::endgroup::"
         env:
          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

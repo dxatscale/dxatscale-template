@@ -1,14 +1,14 @@
 # DX@Scale CI/CD Template for GitHub
 #----------------------------------------------------------------------------------------------------
 # Follows reference pipeline available at docs.dxatscale.io
-# 
+#
 #-----------------------------------------------------------------------------------------------------
 # To know more about dxatscale, visit https://docs.dxatscale.io
 # To know more on sfpowerscripts, visit- https://sfpowerscripts.dxatscale.io/
 
 # This pipeline quickbuilds, deploy to DEV, builds and publishes packages to artifact repository and creates a release definition
 
-name: 'build'
+name: 'CI - Build'
 
 
 on:
@@ -36,7 +36,6 @@ jobs:
     name: 'Quickbuild Packages'
     runs-on: ubuntu-latest
     container: ghcr.io/dxatscale/sfpowerscripts
-    if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v2
         with:
@@ -45,12 +44,12 @@ jobs:
       - name: 'Authenticate Dev Hub'
         run: |
           echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./authfile
-          sf org login sfdx-url  -f authfile -a devhub
+          sf org login sfdx-url --sfdx-url-file authfile --alias devhub
 
       - name: 'Create Packages'
         id: sfpowerscripts-build
         run: |
-          sfp orchestrator:quickbuild -v devhub --diffcheck --buildnumber ${GITHUB_RUN_ID} --branch ${GITHUB_REF#refs/heads/}
+          sfp orchestrator:quickbuild --devhubalias devhub --diffcheck --buildnumber ${GITHUB_RUN_ID} --branch ${GITHUB_REF#refs/heads/}
 
       # Publish artifacts
       - uses: actions/upload-artifact@v2
@@ -63,7 +62,6 @@ jobs:
     runs-on: ubuntu-latest
     container: ghcr.io/dxatscale/sfpowerscripts
     needs: quickbuild
-    if: github.ref == 'refs/heads/main'
     environment:
       name: DEV
     concurrency: dev
@@ -75,30 +73,29 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
              name: quickbuild-artifacts
-             path: artifacts 
+             path: artifacts
 
       - name:  'Authenticate Dev Hub'
         run: |
           echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./authfile
-          sf org login sfdx-url  -f authfile -a devhub
+          sf org login sfdx-url --sfdx-url-file ./authfile -a devhub
 
       - name: Authenticate to DEV sandbox
         run: |
           echo "${{ secrets.DEV_SFDX_AUTH_URL }}" > ./dev_authfile
-          sf org login sfdx-url  -f ./dev_authfile -a dev
+          sf org login sfdx-url --sfdx-url-file ./dev_authfile --alias dev
 
       - name: 'Deploy to DEV'
         run: |
-          sfp dependency:install -u dev -v devhub
-          sfp orchestrator:deploy -u dev  --skipifalreadyinstalled -g "::group::,::endgroup::" 
+          sfp dependency:install --targetusername dev --targetdevhubusername devhub
+          sfp orchestrator:deploy --targetorg dev  --skipifalreadyinstalled -g "::group::,::endgroup::"
 
   buildAndPublish:
     name: 'Build & Publish'
     runs-on: ubuntu-latest
     container: ghcr.io/dxatscale/sfpowerscripts
     needs: deploy
-    concurrency: build 
-    if: github.ref == 'refs/heads/main'
+    concurrency: build
     steps:
       - uses: actions/checkout@v2
         with:
@@ -107,12 +104,12 @@ jobs:
       - name: 'Authenticate Dev Hub'
         run: |
           echo "${{ secrets.DEVHUB_SFDX_AUTH_URL }}" > ./authfile
-          sf org login sfdx-url  -f authfile -a devhub
+          sf org login sfdx-url --sfdx-url-file authfile --alias devhub
 
       - name: 'Build Packages'
         id: sfpowerscripts-build
         run: |
-          sfp orchestrator:build -v devhub --diffcheck --branch ${GITHUB_REF#refs/heads/} --buildnumber ${GITHUB_RUN_ID}
+          sfp orchestrator:build --devhubalias devhub --diffcheck --branch ${GITHUB_REF#refs/heads/} --buildnumber ${GITHUB_RUN_ID}
 
       # Publish artifacts
       - uses: actions/upload-artifact@v2
@@ -127,19 +124,19 @@ jobs:
 
       - name: 'Publish Packages'
         run: |
-          sfp orchestrator:publish -d artifacts --npm --scope @${{ github.repository_owner }}  --gittag --pushgittag
+          sfp orchestrator:publish --artifactdir artifacts --npm --scope @${{ github.repository_owner }}  --gittag --pushgittag
         env:
          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 'Define Release'
         run: |
           RELEASE_NAME=${GITHUB_RUN_ID}
-          if [ "$RELEASE_NAME_PREFIX" != "" ]; then RELEASE_NAME="${RELEASE_NAME_PREFIX}-${GITHUB_RUN_ID}"; fi 
-          
+          if [ "$RELEASE_NAME_PREFIX" != "" ]; then RELEASE_NAME="${RELEASE_NAME_PREFIX}-${GITHUB_RUN_ID}"; fi
+
           TARGET_BRANCH="release-definition"
           if [ "$RELEASE_DEF_TARGET_BRANCH" != "" ]; then TARGET_BRANCH="$RELEASE_DEF_TARGET_BRANCH"; fi
-          
+
           git tag -a $RELEASE_NAME -m "$RELEASE_NAME"
           git push origin $RELEASE_NAME
-          
+
           sfp releasedefinition:generate --branchname "$TARGET_BRANCH_BANE" --gitref "$RELEASE_NAME" --configfile release-config/config.yml --releasename "$RELEASE_NAME"
