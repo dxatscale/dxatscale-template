@@ -11,13 +11,13 @@
 # This pipeline creates the CI pools used during validate
 
 
-name: 'Replenish CI Pools - Auto Triggered'
+name: 'Pool - Create - CI'
 
 on:
   workflow_dispatch:
     inputs:
       gitRef:
-        description: "Commit Id from where the pools should be created"
+        description: "Commit SHA from where the pools should be created"
         required: false
         default: 'main'
   schedule:
@@ -38,14 +38,14 @@ on:
 jobs:
 
   pool-ci-pool:
-    name: 'Replenish CI Pool'
+    name: 'Create CI Pool'
     runs-on: ubuntu-latest
     container: ghcr.io/dxatscale/sfpowerscripts
     timeout-minutes: 720 #Set to Maximum Time out
 
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with: 
          ref: ${{ github.event.inputs.gitRef }}
          fetch-depth: 0
@@ -61,15 +61,17 @@ jobs:
         with:
          registry-url: 'https://npm.pkg.github.com'
 
+      - name: 'Drop the pool if exists'
+        run: 'sfp pool:delete -t ci -v devhub -a'
+
       - name: 'Prepare a pool of scratch orgs'
         run: 'sfp orchestrator:prepare -f config/project-ci-pool-def.json -v devhub'
         env:
          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
+
       # Publish artifacts
       - uses: actions/upload-artifact@v2
         if: ${{ always() }}
         with:
           name: scratchorg-logs-pool-ci
           path: .sfpowerscripts/prepare_logs
-
