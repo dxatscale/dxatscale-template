@@ -48,9 +48,10 @@ jobs:
       name: TEST
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.inputs.releaseDefBranch }}
 
 
       - name: Authenticate to TEST environment
@@ -67,7 +68,6 @@ jobs:
       # Release to environment
       - name: Release to TEST
         run: |
-          git checkout ${{ github.event.inputs.releaseDefBranch }}
           sfp orchestrator:release --targetorg test --releasedefinition ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname changelog -g "::group::,::endgroup::"
         env:
          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -81,10 +81,10 @@ jobs:
       name: PROD
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
+          ref: ${{ github.event.inputs.releaseDefBranch }}
 
       - name: Authenticate to PROD
         run: |
@@ -101,7 +101,6 @@ jobs:
       # Release to environment
       - name: Release to PROD
         run: |
-          git checkout ${{ github.event.inputs.releaseDefBranch }}
           sfp orchestrator:release --targetorg prod --releasedefinition ${{ github.event.inputs.pathToReleaseDef }} --npm --scope ${{ github.repository_owner }} --generatechangelog --branchname changelog -g "::group::,::endgroup::"
         env:
          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

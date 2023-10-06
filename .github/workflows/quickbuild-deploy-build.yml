@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     container: ghcr.io/dxatscale/sfpowerscripts
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -66,7 +66,7 @@ jobs:
       name: DEV
     concurrency: dev
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -97,7 +97,7 @@ jobs:
     needs: deploy
     concurrency: build
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -139,4 +139,4 @@ jobs:
           git tag -a $RELEASE_NAME -m "$RELEASE_NAME"
           git push origin $RELEASE_NAME
 
-          sfp releasedefinition:generate --branchname "$TARGET_BRANCH_BANE" --gitref "$RELEASE_NAME" --configfile release-config/config.yml --releasename "$RELEASE_NAME"
+          sfp releasedefinition:generate --branchname "$TARGET_BRANCH_BANE" --gitref "$RELEASE_NAME" --configfile release-config/config.yml --releasename "$RELEASE_NAME" --directory "release-definitions"

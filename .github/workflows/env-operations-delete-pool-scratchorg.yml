@@ -9,7 +9,7 @@
 
 # Return an used scratch org back to the pool for replenishment
 
-name: 'Scratch Org Recycler - User Triggered'
+name: 'ENV - Delete Scratch Org'
 
 on:
   workflow_dispatch:
