@@ -5,8 +5,8 @@
 # 
 #-----------------------------------------------------------------------------------------------------
 # To know more about dxatscale, visit https://docs.dxatscale.io
-# To know more on sfpowerscripts, visit- https://sfpowerscripts.dxatscale.io/
-# To know more on sfpowerkit, visit- https://github.com/Accenture/sfpowerkit
+# To know more on sfpowerscripts, visit- https://docs.dxatscale.io/sfpowerscripts/sfpowerscripts
+
 
 # This pipeline builds on a release branch. Assumes you've cherry-picked a fix from master (thats been tested in DEV etc). Makes the change available for release
 

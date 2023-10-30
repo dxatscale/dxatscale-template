@@ -21,9 +21,8 @@
 # 
 #------------------------------------------------------------------------------------------------------------
 # To know more on dxatscale, visit https://docs.dxatscale.io
-# To know more on sfpowerscripts, visit https://sfpowerscripts.dxatscale.io/
-# To know more on sfpowerkit, visit https://github.com/Accenture/sfpowerkit
-# To know more on Dockerfile, visit  https://github.com/Accenture/sfpowerscripts/blob/main/dockerfiles
+# To know more on sfpowerscripts, visit https://docs.dxatscale.io/sfpowerscripts/
+# To know more on Dockerfile, visit  https://github.com/dxatscale/sfpowerscripts/blob/main/dockerfiles/sfpowerscripts.Dockerfile
 
 # Configure the following CI/CD environment variables and/or file prior to running the pipleine
 #------------------------------------------------------------------------------------------------------------

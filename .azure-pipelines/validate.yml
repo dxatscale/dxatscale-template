@@ -13,8 +13,8 @@
 # 
 #------------------------------------------------------------------------------------------------------------
 # To know more about dxatscale, visit https://docs.dxatscale.io
-# To know more on sfpowerscripts, visit- https://sfpowerscripts.dxatscale.io/
-# To know more on sfpowerkit, visit- https://github.com/Accenture/sfpowerkit
+# To know more on sfpowerscripts, visit- https://docs.dxatscale.io/sfpowerscripts/sfpowerscripts
+
 
 # Pull request (PR) triggers cause a pipeline to run whenever a pull request is opened with 
 # one of the specified target branches, or when updates are made to such a pull request.

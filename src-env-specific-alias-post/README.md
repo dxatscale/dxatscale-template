@@ -2,4 +2,4 @@ Metadata in src-env-specific-alias-pre is installed after src-env-specific-pre a
 
 Create folders that match the alias of the orgs as used in the CI/CD pipelines.
 
-Read more about aliasified folder at  https://sfpowerscripts.dxatscale.io/faq/package-types/source-packages#what-are-my-options-with-source-packages
+Read more about aliasified folder at  https://docs.dxatscale.io/sfpowerscripts/sfpowerscriptsfaq/package-types/source-packages#what-are-my-options-with-source-packages
